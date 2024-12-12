@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { useFetcher, useLoaderData, useNavigate } from "@remix-run/react";
+import { useFetcher, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -34,21 +34,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const forms = useLoaderData<typeof loader>();
-
-  // if(forms.length === 0) {
-  //   return <EmptyStatePage/>
-  // }
+  
+  const submit = useSubmit();
   const navigate = useNavigate();
+
+  console.log("Index", Array.from(forms).length);
 
   return (
     <Page title="NPS Forms" primaryAction={{
       content: "Create Form",
-      url: "forms/new"
+      url: "app/forms/new",
     }}>
       <Layout>
         <Layout.Section>
           <Card padding="0">
-            {forms.length === 0 ? (
+            {Array.from(forms).length === 0 ? (
               <EmptyStatePage />
             ) : (
               <>Lista de forms</>

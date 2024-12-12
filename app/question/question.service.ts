@@ -33,6 +33,14 @@ export async function CreateQuestion(data: Prisma.QuestionCreateInput): Promise<
   return question
 }
 
+export async function CreateQuestions(data: Prisma.QuestionCreateManyInput) { 
+  const questions = await db.question.createMany({
+    data
+  })
+
+  return questions 
+}
+
 export async function UpdateQuestion(id: number, data: Prisma.QuestionUpdateInput): Promise<Question> {
   const question = await db.question.update({
     where: { id },

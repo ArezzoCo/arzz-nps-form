@@ -62,8 +62,5 @@ export default defineConfig({
   ],
   build: {
     assetsInlineLimit: 0,
-  },
-  optimizeDeps: {
-    exclude: ['@shopify/polaris', '@shopify/react-i18n']
   }
 }) satisfies UserConfig;
