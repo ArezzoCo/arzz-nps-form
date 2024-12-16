@@ -21,7 +21,7 @@ CREATE TABLE "Session" (
 CREATE TABLE "Form" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL,
-    "isActive" BOOLEAN NOT NULL,
+    "formType" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -50,9 +50,6 @@ CREATE TABLE "OrderNPS" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Form_title_key" ON "Form"("title");
-
--- CreateIndex
-CREATE INDEX "Form_isActive_idx" ON "Form"("isActive");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Question_title_key" ON "Question"("title");

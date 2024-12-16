@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://consequently-soma-piano-compared.trycloudflare.com"
+application_url = "https://automated-sa-cameron-society.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://consequently-soma-piano-compared.trycloudflare.com/auth/callback",
-  "https://consequently-soma-piano-compared.trycloudflare.com/auth/shopify/callback",
-  "https://consequently-soma-piano-compared.trycloudflare.com/api/auth/callback"
+  "https://automated-sa-cameron-society.trycloudflare.com/auth/callback",
+  "https://automated-sa-cameron-society.trycloudflare.com/auth/shopify/callback",
+  "https://automated-sa-cameron-society.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

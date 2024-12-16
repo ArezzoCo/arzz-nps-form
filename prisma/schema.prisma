@@ -34,13 +34,11 @@ model Session {
 model Form {
   id        Int        @id @default(autoincrement())
   title     String     @unique
-  isActive  Boolean
+  formType  String
   questions Question[]
   OrderNPS  OrderNPS[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
-
-  @@index([isActive])
 }
 
 model Question {

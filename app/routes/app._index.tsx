@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { useFetcher, useLoaderData, useNavigate, useSubmit } from "@remix-run/react";
+import {
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+  useSubmit,
+} from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -13,45 +18,82 @@ import {
   Link,
   InlineStack,
   EmptyState,
+  ResourceList,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import FormListPage from "app/form/components/FormListPage";
-import { GetForms } from "app/form/form.service";
+import { DeleteForm, GetForms } from "app/form/form.service";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { redirect } = await authenticate.admin(request);
   const forms = await GetForms();
   console.log("loader", forms);
 
-  return Response.json({forms});
+  return Response.json({ forms });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   console.log("action");
+  const formData = await request.formData();
+  const formId = Number(formData.get("id"));
+  request.method === "DELETE" && (await DeleteForm(formId));
   return null;
 };
 
 export default function Index() {
   const forms = useLoaderData<typeof loader>();
-  
+
   const submit = useSubmit();
   const navigate = useNavigate();
 
-  console.log("Index", Array.from(forms).length);
+  console.log("Index", forms.forms);
+
+  const handleDelete = async (id: number) => {
+    const formData = new FormData();
+    formData.append("id", id.toString());
+    submit(formData, {method: "delete"});
+  }
 
   return (
-    <Page title="NPS Forms" primaryAction={{
-      content: "Create Form",
-      url: "app/forms/new",
-    }}>
+    <Page
+      title="NPS Forms"
+      primaryAction={{
+        content: "Create Form",
+        url: "forms/new",
+      }}
+    >
       <Layout>
         <Layout.Section>
           <Card padding="0">
-            {Array.from(forms).length === 0 ? (
+            {Array.from(forms.forms).length === 0 ? (
               <EmptyStatePage />
             ) : (
-              <>Lista de forms</>
+              <ResourceList
+                resourceName={{ singular: "form", plural: "forms" }}
+                items={forms.forms}
+                renderItem={(item) => {
+                  return (
+                    <ResourceList.Item
+                      id={item.id}
+                      url={`/app/forms/${item.id}`}
+                      accessibilityLabel={`View details for ${item.title}`}
+                      shortcutActions={[
+                        {
+                          content: "Delete",
+                          onAction: () => {
+                            handleDelete(item.id);
+                          },
+                        }
+                      ]}
+                    >
+                      <h3>
+                        <Text as="h2">{item.title}</Text>
+                      </h3>
+                    </ResourceList.Item>
+                  );
+                }}
+              />
             )}
           </Card>
         </Layout.Section>
