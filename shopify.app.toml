@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://automated-sa-cameron-society.trycloudflare.com"
+application_url = "https://nikon-containers-plants-charm.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_orders,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://automated-sa-cameron-society.trycloudflare.com/auth/callback",
-  "https://automated-sa-cameron-society.trycloudflare.com/auth/shopify/callback",
-  "https://automated-sa-cameron-society.trycloudflare.com/api/auth/callback"
+  "https://nikon-containers-plants-charm.trycloudflare.com/auth/callback",
+  "https://nikon-containers-plants-charm.trycloudflare.com/auth/shopify/callback",
+  "https://nikon-containers-plants-charm.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
