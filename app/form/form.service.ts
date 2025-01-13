@@ -1,5 +1,6 @@
 import { Form, Prisma } from "@prisma/client";
 import db from "../db.server";
+import { connect } from "http2";
 
 export async function GetForm(id: number): Promise<Form | null> {
   const form = await db.form.findUnique({
@@ -26,6 +27,10 @@ export async function GetForms(
     },
     skip,
     take,
+    include: {
+      questions: true,
+      OrderNPS: true,
+    }
   });
 
   return forms;
@@ -58,11 +63,31 @@ export async function CreateForm(
 
 export async function UpdateForm(
   id: number,
-  data: Prisma.FormUpdateInput,
-): Promise<Form> {
+  formData: Prisma.FormUpdateWithoutQuestionsInput,
+  questions: Prisma.QuestionUpdateWithoutFormInput[],
+)/*: Promise<Form> */ {
+  console.log("UpdateForm form", formData);
+  console.log("UpdateForm questions", questions);
+  const formValues = await JSON.parse(formData as any);
+  const questionValues = await JSON.parse(questions as any);
   const form = await db.form.update({
+    data: {
+      id: id,
+      title: formValues.title,
+      formType: formValues.formType,
+      questions: {
+        updateMany: questionValues.map((question: any)=>({
+          where: { id: question.id },
+          data: {
+            question: question.question,
+            questionType: question.questionType,
+            options: question.options,
+            required: question.required,
+          }
+        })),
+      },
+    },
     where: { id },
-    data,
   });
 
   return form;
@@ -71,6 +96,10 @@ export async function UpdateForm(
 export async function DeleteForm(id: number): Promise<Form> {
   const form = await db.form.delete({
     where: { id },
+    include: {
+      questions: true,
+      OrderNPS: true,
+    }
   });
 
   return form;

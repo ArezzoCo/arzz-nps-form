@@ -1,22 +1,25 @@
 import { Form, Prisma, Question } from "@prisma/client";
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useLoaderData, useSubmit } from "@remix-run/react";
 import {
   BlockStack,
   Button,
   Card,
   Checkbox,
+  Divider,
   FormLayout,
   Layout,
   Modal,
   Page,
+  RangeSlider,
   ResourceItem,
   ResourceList,
   Select,
   Text,
   TextField,
 } from "@shopify/polaris";
-import { CreateForm, GetForm } from "app/form/form.service";
+import InputTypeSelector from "app/form/components/InputTypeSelector";
+import { CreateForm, GetForm, UpdateForm } from "app/form/form.service";
 import { authenticate } from "app/shopify.server";
 import { useEffect, useState } from "react";
 
@@ -25,6 +28,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   if (params.id !== "new" && isNaN(Number(params.id))) {
     return redirect("/app");
   }
+
   if (params.id === "new") {
     return {
       form: {
@@ -42,7 +46,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 };
 
-export const action = async ({ request }: LoaderFunctionArgs) => {
+export const action = async ({ request, params }: LoaderFunctionArgs) => {
   const formData = await request.formData();
   const form = formData.get(
     "form",
@@ -53,14 +57,22 @@ export const action = async ({ request }: LoaderFunctionArgs) => {
 
   console.log("action form", form);
   console.log("action questions", questions);
-
-  CreateForm(form, questions);
-  return null;
+  //create or update form
+  console.log(params.id);
+  if (params.id == "new"){
+    console.log('aaa')
+    await CreateForm(form, questions);
+  }else{
+    //update form
+    console.log("update form");
+    await UpdateForm(Number(params.id), form, questions);
+  }
+  return redirect("/app");
 };
 
 export default function Index() {
   const data = useLoaderData<typeof loader>();
-
+  const isFormEdit = data.params == "new"? false : true;
   return (
     <Page
       title="NPS Form"
@@ -71,7 +83,9 @@ export default function Index() {
     >
       <Layout>
         <Layout.Section>
-          <Card>{data.params === "new" ? <NewForm /> : <FormComponent formProp={data.form as Prisma.FormUncheckedCreateInput} />}</Card>
+          <Card>
+            <FormComponent formProp={data.form as Prisma.FormUncheckedCreateInput} isFormEdit={isFormEdit} />
+          </Card>
         </Layout.Section>
       </Layout>
     </Page>
@@ -109,6 +123,18 @@ const useQuestionState = () => {
       answers: "",
       required: false,
     });
+  interface npsData {
+    npsRange: number;
+    firstRange?: number;
+    firstQuestion?: Prisma.QuestionCreateWithoutFormInput;
+
+    secondRange?: number;
+    secondQuestion?: Prisma.QuestionCreateWithoutFormInput;
+  }
+  const [npsData, setNpsData] = useState<npsData>({
+    npsRange: 10,
+  });
+
   const handleQuestionChange = (key: string, value: any) => {
     setNewQuestion((prev) => ({ ...prev, [key]: value }));
   };
@@ -116,11 +142,17 @@ const useQuestionState = () => {
     setQuestions((prev) => [...prev, question]);
   };
 
+
+
   const updateQuestion = (
     index: number,
     question: Prisma.QuestionCreateWithoutFormInput,
   ) => {
-    setQuestions((prev) => prev.map((q, i) => (i === index ? question : q)));
+    setQuestions(prev => {
+      const newQuestions = [...prev];
+      newQuestions[index] = question;
+      return newQuestions;
+    })
   };
 
   const removeQuestion = (index: number) => {
@@ -136,236 +168,17 @@ const useQuestionState = () => {
     updateQuestion,
     removeQuestion,
     setQuestions,
+
+    npsData,
+    setNpsData
   };
-};
-
-const NewForm = () => {
-  const [isDirty, setIsDirty] = useState(false);
-  const { form, handleChange, formTypes } = useFormState();
-  const {
-    setNewQuestion,
-    newQuestion,
-    questions,
-    handleQuestionChange,
-    addQuestion,
-    updateQuestion,
-    removeQuestion,
-  } = useQuestionState();
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [modalActive, setModalActive] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-
-  const toggleModal = () => {
-    console.log("toggleModal");
-    if (modalActive) setIsEditing(false);
-    setModalActive(!modalActive);
-  };
-
-  const handleAddQuestion = () => {
-    if (!newQuestion.title) {
-      setErrors((prev) => ({ ...prev, questionTitle: "Title is required" }));
-      return;
-    }
-
-    if (!newQuestion.inputType) {
-      setErrors((prev) => ({
-        ...prev,
-        questionInputType: "Input type is required",
-      }));
-      return;
-    }
-
-    if (newQuestion.answers.length < 1) {
-      setErrors((prev) => ({
-        ...prev,
-        questionAnswers: "At least 2 answers are required",
-      }));
-      return;
-    }
-
-    if (isEditing) {
-      updateQuestion(questions.indexOf(newQuestion), newQuestion);
-    } else {
-      addQuestion(newQuestion);
-    }
-    toggleModal();
-    setIsEditing(false);
-  };
-
-  const questionInputOptions = [
-    { label: "Text", value: "text" },
-    { label: "Number", value: "number" },
-    { label: "Email", value: "email" },
-    { label: "Phone", value: "phone" },
-    { label: "Date", value: "date" },
-    { label: "Time", value: "time" },
-    { label: "Select", value: "select" },
-    { label: "Radio", value: "radio" },
-    { label: "Checkbox", value: "checkbox" },
-  ];
-
-  const submit = useSubmit();
-  const handleSubmit = async () => {
-    console.log("submit form", form);
-    console.log("submit questions", questions);
-
-    const formData = new FormData();
-    formData.append("form", JSON.stringify(form));
-    formData.append("questions", JSON.stringify(questions));
-
-    submit(formData, { method: "POST" });
-  };
-
-  return (
-    <FormLayout>
-      <FormLayout.Group>
-        <BlockStack gap="500">
-          <Text as="h2" variant="headingLg">
-            Form Configuration
-          </Text>
-          <TextField
-            label="Form name"
-            value={form?.title}
-            onChange={(value) => {
-              handleChange("title", value);
-            }}
-            error={errors.name}
-            autoComplete="off"
-          />
-          <Select
-            label="Form Type"
-            options={formTypes}
-            value={form?.formType}
-            onChange={(value) => {
-              handleChange("formType", value);
-            }}
-          />
-        </BlockStack>
-      </FormLayout.Group>
-
-      <FormLayout.Group>
-        <BlockStack gap="500">
-          <Text as="h3" variant="headingMd">
-            Questions
-          </Text>
-          <Button
-            onClick={() => {
-              toggleModal();
-            }}
-          >
-            Add Question
-          </Button>
-
-          <ResourceList
-            resourceName={{ singular: "question", plural: "questions" }}
-            items={(questions as Array<Question>) || []}
-            renderItem={(question, index) => (
-              <ResourceItem
-                id={index.toString()}
-                shortcutActions={[
-                  {
-                    content: "Delete",
-                    onAction: () => {
-                      removeQuestion(questions.indexOf(question));
-                    },
-                  },
-                ]}
-                onClick={() => {
-                  setIsEditing(true);
-                  setNewQuestion(question);
-                  toggleModal();
-                }}
-              >
-                <Text as="h2" variant="bodyMd">
-                  {question.title}
-                </Text>
-                <div>{question.description}</div>
-              </ResourceItem>
-            )}
-          />
-        </BlockStack>
-      </FormLayout.Group>
-
-      <Button
-        variant="primary"
-        disabled={isDirty}
-        onClick={() => {
-          handleSubmit();
-        }}
-      >
-        Save
-      </Button>
-
-      <Modal
-        open={modalActive}
-        onClose={toggleModal}
-        title="Add New Question"
-        primaryAction={{
-          content: isEditing ? "Edit Question" : "Add Question",
-          onAction: handleAddQuestion,
-        }}
-        secondaryActions={[
-          {
-            content: "Cancel",
-            onAction: toggleModal,
-          },
-        ]}
-      >
-        <Modal.Section>
-          <FormLayout>
-            {isEditing && (
-              <Text as="h3" variant="bodyMd" tone="critical">
-                Editando Questão
-              </Text>
-            )}
-            <TextField
-              label="Question Title"
-              value={newQuestion.title}
-              onChange={(value) => handleQuestionChange("title", value)}
-              error={errors.questionTitle}
-              autoComplete="off"
-            />
-            <TextField
-              label="Question Description"
-              value={newQuestion.description!}
-              onChange={(value) => handleQuestionChange("description", value)}
-              multiline
-              autoComplete="off"
-            />
-            <Select
-              label="Input Type"
-              options={questionInputOptions}
-              value={newQuestion.inputType}
-              onChange={(value) => handleQuestionChange("inputType", value)}
-            />
-            <Checkbox
-              label="Required"
-              checked={newQuestion.required || false}
-              onChange={(value) => handleQuestionChange("required", value)}
-            />
-            <TextField
-              label="Answers"
-              helpText="Enter the possible answers separated by comma ','"
-              value={newQuestion.answers}
-              onChange={(value) => handleQuestionChange("answers", value)}
-              autoComplete="off"
-            />
-          </FormLayout>
-        </Modal.Section>
-      </Modal>
-    </FormLayout>
-  );
-};
-
-const EditForm = () => {
-  return <>TODO: Implementar View + edit form</>;
 };
 
 interface FormComponentProps {
   formProp?: Prisma.FormUncheckedCreateInput;
+  isFormEdit?: boolean;
 }
-const FormComponent = ({ formProp }: FormComponentProps) => {
+const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
   const [isDirty, setIsDirty] = useState(false);
   const { form, formTypes ,handleChange, setForm } = useFormState();
   const {
@@ -377,11 +190,20 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
     addQuestion,
     updateQuestion,
     removeQuestion,
+
+
+    npsData,
+    setNpsData
   } = useQuestionState();
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [modalActive, setModalActive] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState<{
+    isEditing: boolean;
+    index?: number;
+  }>({
+    isEditing: false,
+  });
 
   useEffect(()=>{
     if(formProp && formProp.questions){
@@ -392,11 +214,20 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
 
   const toggleModal = () => {
     console.log("toggleModal");
-    if (modalActive) setIsEditing(false);
+    if (modalActive) setIsEditing({ isEditing: false });
     setModalActive(!modalActive);
   };
 
   const handleAddQuestion = () => {
+    console.log('add nova questao', newQuestion)
+
+    if(newQuestion.inputType == 'nps'){
+      setNewQuestion({
+        ...newQuestion,
+        answers: JSON.stringify(npsData)
+      })
+    }
+
     if (!newQuestion.title) {
       setErrors((prev) => ({ ...prev, questionTitle: "Title is required" }));
       return;
@@ -418,26 +249,21 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
       return;
     }
 
-    if (isEditing) {
-      updateQuestion(questions.indexOf(newQuestion), newQuestion);
+
+
+    if (isEditing.isEditing) {
+      console.log("update question", );
+      const index = isEditing.index !== undefined ? isEditing.index : -1;
+      if (index >= 0) {
+        updateQuestion(index, newQuestion);
+      }
     } else {
+      console.log('questao adicionada', newQuestion)
       addQuestion(newQuestion);
     }
     toggleModal();
-    setIsEditing(false);
+    setIsEditing({ isEditing: false });
   };
-
-  const questionInputOptions = [
-    { label: "Text", value: "text" },
-    { label: "Number", value: "number" },
-    { label: "Email", value: "email" },
-    { label: "Phone", value: "phone" },
-    { label: "Date", value: "date" },
-    { label: "Time", value: "time" },
-    { label: "Select", value: "select" },
-    { label: "Radio", value: "radio" },
-    { label: "Checkbox", value: "checkbox" },
-  ];
 
   const submit = useSubmit();
   const handleSubmit = async () => {
@@ -450,6 +276,7 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
 
     submit(formData, { method: "POST" });
   };
+
   return (
     <FormLayout>
       <FormLayout.Group>
@@ -457,6 +284,11 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
           <Text as="h2" variant="headingLg">
             Form Configuration
           </Text>
+          {isFormEdit && (
+            <Text as="h3" variant="bodyMd" tone="critical">
+              Editing Form
+            </Text>
+          )}
           <TextField
             label="Form name"
             value={form?.title}
@@ -505,8 +337,10 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
                   },
                 ]}
                 onClick={() => {
-                  setIsEditing(true);
-                  setNewQuestion(question);
+                  setIsEditing({
+                    isEditing: true,
+                    index: questions.indexOf(question),
+                  });
                   toggleModal();
                 }}
               >
@@ -535,7 +369,7 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
         onClose={toggleModal}
         title="Add New Question"
         primaryAction={{
-          content: isEditing ? "Edit Question" : "Add Question",
+          content: isEditing.isEditing ? "Edit Question" : "Add Question",
           onAction: handleAddQuestion,
         }}
         secondaryActions={[
@@ -547,7 +381,7 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
       >
         <Modal.Section>
           <FormLayout>
-            {isEditing && (
+            {isEditing.isEditing && (
               <Text as="h3" variant="bodyMd" tone="critical">
                 Editando Questão
               </Text>
@@ -566,9 +400,8 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
               multiline
               autoComplete="off"
             />
-            <Select
+            <InputTypeSelector
               label="Input Type"
-              options={questionInputOptions}
               value={newQuestion.inputType}
               onChange={(value) => handleQuestionChange("inputType", value)}
             />
@@ -577,16 +410,160 @@ const FormComponent = ({ formProp }: FormComponentProps) => {
               checked={newQuestion.required || false}
               onChange={(value) => handleQuestionChange("required", value)}
             />
-            <TextField
-              label="Answers"
-              helpText="Enter the possible answers separated by comma ','"
-              value={newQuestion.answers}
-              onChange={(value) => handleQuestionChange("answers", value)}
-              autoComplete="off"
-            />
+            {newQuestion.inputType !== "nps" && (
+              <TextField
+                label="Answers"
+                helpText="Enter the possible answers separated by comma ','"
+                value={newQuestion.answers}
+                onChange={(value) => handleQuestionChange("answers", value)}
+                autoComplete="off"
+              />
+            )}
+            {newQuestion.inputType === "nps" && (
+            <BlockStack gap="500">
+              <Text as="h2" variant="headingMd">NPS Options</Text>
+              
+              <RangeSlider
+                label={`NPS Range: ${npsData.npsRange}`}
+                value={npsData.npsRange}
+                onChange={(value) => setNpsData({...npsData, npsRange: Number(value)})} 
+                min={1}
+                max={10}
+              />
+
+              <Text as="h3" variant="headingMd">First Conditional</Text>
+
+              {/* range and question input */}
+              <Text as="p" variant="bodyMd">The answer will be considered OK</Text>
+              <RangeSlider 
+                label={`Render when the NPS is below ${npsData.firstRange}`}
+                value={npsData.firstRange!}
+                min={1}
+                max={npsData.npsRange}
+                onChange={(value) => setNpsData({...npsData, firstRange: Number(value)})}
+              />
+              {/* Question Input */}
+              <TextField
+                label="Question Title"
+                autoComplete="off"
+                value={npsData.firstQuestion?.title}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  firstQuestion: {
+                    ...npsData.firstQuestion!,
+                    title: value
+                  }
+                })}}
+              />
+              <TextField
+                label="Question Description"
+                autoComplete="off"
+                value={npsData.firstQuestion?.description ?? ""}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  firstQuestion: {
+                    ...npsData.firstQuestion!,
+                    description: value
+                  }
+                })}}
+              />
+              <InputTypeSelector 
+                label="Input Type"
+                value={npsData.firstQuestion?.inputType!}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  firstQuestion: {
+                    ...npsData.firstQuestion!,
+                    inputType: value
+                  }
+                })}}
+                noNps={true}
+              />
+              <Checkbox
+                label="Required"
+                checked={npsData.firstQuestion?.required || false}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  firstQuestion: {
+                    ...npsData.firstQuestion!,
+                    required: value
+                  }
+                })}}
+              />
+              <Divider/>
+
+              {/* Second Question */}
+
+              <Text as="h3" variant="headingMd">Second Conditional</Text>
+              <Text as="p" variant="bodyMd" tone="critical">The answer will be considered Bad</Text>
+
+              <RangeSlider 
+                label={`Render when the NPS is below ${npsData.secondRange}`}
+                value={npsData.secondRange!}
+                min={1}
+                max={npsData.firstRange! -1}
+                onChange={(value) => setNpsData({...npsData, secondRange: Number(value)})}
+              />
+
+              <TextField
+                label="Question Title"
+                autoComplete="off"
+                value={npsData.secondQuestion?.title}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  secondQuestion: {
+                    ...npsData.secondQuestion!,
+                    title: value
+                  }
+                })}}
+              />
+
+              <TextField
+                label="Question Description"
+                autoComplete="off"
+                value={npsData.secondQuestion?.description ?? ""}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  secondQuestion: {
+                    ...npsData.secondQuestion!,
+                    description: value
+                  }
+                })}}
+              />
+              <InputTypeSelector
+                label="Input Type"
+                value={npsData.secondQuestion?.inputType!}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  secondQuestion: {
+                    ...npsData.secondQuestion!,
+                    inputType: value
+                  }
+                })}}
+                noNps={true}
+              />
+              <Checkbox
+                label="required"
+                checked={npsData.secondQuestion?.required || false}
+                onChange={(value)=>{setNpsData({
+                  ...npsData,
+                  secondQuestion: {
+                    ...npsData.secondQuestion!,
+                    required: value
+                  }
+                })
+                }}
+                />
+
+
+              
+
+            </BlockStack>
+            )}
           </FormLayout>
         </Modal.Section>
       </Modal>
     </FormLayout>
   );
 };
+

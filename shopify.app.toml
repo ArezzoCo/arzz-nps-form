@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://nikon-containers-plants-charm.trycloudflare.com"
+application_url = "https://tb-latino-situation-robust.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://nikon-containers-plants-charm.trycloudflare.com/auth/callback",
-  "https://nikon-containers-plants-charm.trycloudflare.com/auth/shopify/callback",
-  "https://nikon-containers-plants-charm.trycloudflare.com/api/auth/callback"
+  "https://tb-latino-situation-robust.trycloudflare.com/auth/callback",
+  "https://tb-latino-situation-robust.trycloudflare.com/auth/shopify/callback",
+  "https://tb-latino-situation-robust.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -22,7 +22,6 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import FormListPage from "app/form/components/FormListPage";
 import { DeleteForm, GetForms } from "app/form/form.service";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -57,7 +56,7 @@ export default function Index() {
 
   return (
     <Page
-      title="NPS Forms"
+      title="ARZZ Forms"
       primaryAction={{
         content: "Create Form",
         url: "forms/new",

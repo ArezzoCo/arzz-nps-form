@@ -1,0 +1,39 @@
+{{ 'dynamic-form.js' |  asset_url |  script_tag }}
+{{ 'dynamic-form.css' |  asset_url |  stylesheet_tag }}
+
+<section>
+  <h1>ARZZ Dynamic Form</h1>
+  <div 
+    id="dynamic-form"
+    data-form-type="{{ block.settings.form_type }}"
+    data-form-id="{{ block.settings.form_id }}"
+  >
+    {% comment %} Dynamic form is rendered here {% endcomment %}
+  </div>
+</section>
+
+{% schema  %} 
+{
+  "name": "Dynamic Form",
+  "target": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "form_type",
+      "label": "Form Type",
+      "options": [
+        {
+          "value": "nps",
+          "label": "NPS Form"
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "default": 1,
+      "id": "form_id",
+      "label": "Form ID"
+    }
+  ]
+}
+{% endschema %}
