@@ -17,8 +17,10 @@ frontend:
         - npm run build
 
         - mv build .amplify-hosting
-        - mv .amplify-hosting/client .amplify-hosting/static
         - mkdir -p .amplify-hosting/compute
+        - mkdir -p .amplify-hosting/static
+
+        - mv .amplify-hosting/client .amplify-hosting/static        
         - mv .amplify-hosting/server .amplify-hosting/compute/default
         
         - npm ci --omit dev
