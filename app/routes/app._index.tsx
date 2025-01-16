@@ -75,7 +75,7 @@ export default function Index() {
                 renderItem={(item) => {
                   return (
                     <ResourceList.Item
-                      id={item.id}
+                      id={String(item.id)}
                       url={`/app/forms/${item.id}`}
                       accessibilityLabel={`View details for ${item.title}`}
                       shortcutActions={[
