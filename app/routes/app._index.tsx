@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import {
+  json,
   useFetcher,
   useLoaderData,
   useNavigate,
@@ -29,7 +30,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const forms = await GetForms();
   console.log("loader", forms);
 
-  return Response.json({ forms });
+  return json({ forms });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
