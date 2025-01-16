@@ -1,0 +1,33 @@
+version: 1
+baseDirectory: .amplify-hosting
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm install 21
+        - nvm use 21
+        
+        - npm i
+        - npm ci
+    build:
+      commands:
+        - nvm use 21
+        - npx prisma generate
+        - npx prisma migrate deploy
+        - npm run build
+
+        - mv build .amplify-hosting
+        - mv .amplify-hosting/client .amplify-hosting/static
+        - mkdir -p .amplify-hosting/compute
+        - mv .amplify-hosting/server .amplify-hosting/compute/default
+        
+        - npm ci --omit dev
+
+        - cp package.json .amplify-hosting/compute/default
+        - cp -r node_modules .amplify-hosting/compute/default
+        - cp server.js .amplify-hosting/compute/default
+        - cp deploy-manifest.json .amplify-hosting/deploy-manifest.json
+  artifacts:
+    files:
+      - "**/*"
+    baseDirectory: .amplify-hosting
