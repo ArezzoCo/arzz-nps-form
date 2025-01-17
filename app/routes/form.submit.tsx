@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { ActionFunctionArgs } from "@remix-run/node";
+import { ActionFunctionArgs, json } from "@remix-run/node";
 import { GetForm } from "app/form/form.service";
 import { CreateOrderNPS } from "app/orderNPS/orderNPS.service";
 import { authenticate } from "app/shopify.server";
@@ -57,7 +57,7 @@ export const action = async ({ request }:ActionFunctionArgs) => {
   console.log("Response", response);
 
 
-  return Response.json({
+  return json({
     message: 'ok',
     data
   })
