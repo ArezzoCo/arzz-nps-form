@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://turn-div-storm-j.trycloudflare.com"
+application_url = "https://bolt-lay-happens-body.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_orders,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://turn-div-storm-j.trycloudflare.com/auth/callback",
-  "https://turn-div-storm-j.trycloudflare.com/auth/shopify/callback",
-  "https://turn-div-storm-j.trycloudflare.com/api/auth/callback"
+  "https://bolt-lay-happens-body.trycloudflare.com/auth/callback",
+  "https://bolt-lay-happens-body.trycloudflare.com/auth/shopify/callback",
+  "https://bolt-lay-happens-body.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

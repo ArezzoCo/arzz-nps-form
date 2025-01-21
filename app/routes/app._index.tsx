@@ -87,9 +87,13 @@ export default function Index() {
                         }
                       ]}
                     >
-                      <h3>
-                        <Text as="h2">{item.title}</Text>
-                      </h3>
+                      <Text as="span">
+                        ID:{item.id}
+                      </Text>
+                      <Text as="h2" fontWeight="bold">
+                        {item.title}
+                      </Text>
+
                     </ResourceList.Item>
                   );
                 }}

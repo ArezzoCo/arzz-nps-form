@@ -44,10 +44,10 @@ export const action = async ({ request }:ActionFunctionArgs) => {
   const variables = {
     "metafields": [
       {
-        "key": "test_text",
+        "key": "nps",
         "namespace": "custom",
         "ownerId": `gid://shopify/Order/${data.orderId}`,
-        "type": "single_line_text_field",
+        "type": "json",
         "value": JSON.stringify(NPS),
       }
     ]

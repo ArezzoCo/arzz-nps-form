@@ -57,7 +57,7 @@ const renderForm = async (formObj) => {
     </div>
     ${formObj.questions.map((question, index) => {
       return renderQuestion(question);
-    })}
+    }).join("")}
     <button class="submit-bttn" type="submit">Submit</button>
   </form>
   `;
@@ -111,13 +111,84 @@ const renderQuestion = (question) => {
                 />
               `;
               })
-              .join("")}
+              .join('')}
           </div>
           </div>
           <div id="nps-conditional-questions"></div>
       </div>
     `;
   }
+
+  // select, radio and checkbox
+  if (question.inputType === 'select') {
+    const answers = question.answers.split(',').map((q) => q.trim());
+    return `
+      <div class="form-group select">
+        <h3>${question.title}</h3>
+        <label>${question.description}</label>
+        <select class="input">
+          ${answers
+            .map((answer) => {
+              return `<option value="${answer}">${answer}</option>`;
+            })
+            .join('')}
+        </select>
+      </div>
+    `;
+  }
+  
+  if (question.inputType === 'radio') {
+    const answers = question.answers.split(',').map((q) => q.trim());
+    return `
+      <div class="form-group radio">
+        <h3>${question.title}</h3>
+        <label>${question.description}</label>
+        <div class="radio-options">
+          ${answers
+            .map((answer, index) => {
+              return `
+              <label>
+                <input 
+                  type="radio" 
+                  id="${`${answer.split()[0]}-${index}`}" 
+                  name="${question.title.split()[0]}" 
+                  value="${`${answer.split()[0]}-${index}`}"
+                />
+                ${answer}
+              </label>`;
+            })
+            .join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  if (question.inputType === 'checkbox') {
+    const answers = question.answers.split(',').map((q) => q.trim());
+    return `
+      <div class="form-group checkbox">
+        <h3>${question.title}</h3>
+        <label>${question.description}</label>
+        <div class="select-options">
+          ${answers
+            .map((answer, index) => {
+              return `
+                <label>
+                  <input 
+                    type="checkbox" 
+                    id="${`${answer.split()[0]}-${index}`}" 
+                    name="${question.title.split()[0]}"
+                    value="${`${answer.split()[0]}-${index}`}"
+                  />
+                  ${answer}
+                </label>`;
+            })
+            .join('')}
+        </div>
+      </div>
+    `;
+  }
+  
 
   return `
     <div class="form-group">
