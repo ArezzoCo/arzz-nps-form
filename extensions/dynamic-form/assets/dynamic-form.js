@@ -83,9 +83,9 @@ const renderQuestion = (question) => {
               gap: .4rem;
             "
           >
-            ${Array.from({ length: npsObj.npsRange })
+            ${Array.from({ length: npsObj.npsRange +1 })
               .map((_, index) => {
-                const value = index + 1;
+                const value = index;
                 return `
                 <label 
                   for="nps-${value}" 
@@ -118,9 +118,37 @@ const renderQuestion = (question) => {
       </div>
     `;
   }
+  
+  return inputHTML(question.inputType, question)
+  
+};
 
-  // select, radio and checkbox
-  if (question.inputType === 'select') {
+function handleNpsChange(e) {
+  const nps = window.nps;
+  const selectedRange = e.target.getAttribute("for").split("-")[1];
+  const container = document.getElementById('nps-conditional-questions')
+  let question;
+  if(selectedRange <= nps.firstRange && selectedRange > nps.secondRange) {
+    question = nps.firstQuestion
+  }
+  if(selectedRange < nps.firstRange && selectedRange <= nps.secondRange) {
+    question = nps.secondQuestion
+  }
+  if (!question){
+    container.innerHTML = "";
+    return;
+  }
+  console.log('question', question)
+  console.log("nps", nps);
+
+  const html = inputHTML(question.inputType, question);
+  console.log('html', html)
+
+  container.innerHTML = html;
+}
+
+const inputHTML = (inputType, question) =>{
+  if(inputType === 'select'){
     const answers = question.answers.split(',').map((q) => q.trim());
     return `
       <div class="form-group select">
@@ -136,8 +164,8 @@ const renderQuestion = (question) => {
       </div>
     `;
   }
-  
-  if (question.inputType === 'radio') {
+
+  if(inputType === 'radio'){
     const answers = question.answers.split(',').map((q) => q.trim());
     return `
       <div class="form-group radio">
@@ -162,8 +190,8 @@ const renderQuestion = (question) => {
       </div>
     `;
   }
-  
-  if (question.inputType === 'checkbox') {
+
+  if(inputType === 'checkbox'){
     const answers = question.answers.split(',').map((q) => q.trim());
     return `
       <div class="form-group checkbox">
@@ -188,7 +216,6 @@ const renderQuestion = (question) => {
       </div>
     `;
   }
-  
 
   return `
     <div class="form-group">
@@ -197,38 +224,4 @@ const renderQuestion = (question) => {
       <input class="input" type="${question.inputType}" name="${question.title}" ${question.required ? "required" : ""}>
     </div>
   `;
-};
-
-function handleNpsChange(e) {
-  const nps = window.nps;
-  const selectedRange = e.target.getAttribute("for").split("-")[1];
-  const container = document.getElementById('nps-conditional-questions')
-  let question;
-  if(selectedRange <= nps.firstRange && selectedRange > nps.secondRange) {
-    question = nps.firstQuestion
-  }
-  if(selectedRange < nps.firstRange && selectedRange <= nps.secondRange) {
-    question = nps.secondQuestion
-  }
-  if (!question){
-    container.innerHTML = "";
-    return;
-  }
-  console.log('question', question)
-  console.log("nps", nps);
-
-  const html = `
-  <div class="form-group">
-    <h3>${question.title}</h3>
-    <p>${question.description}</p>
-    <input 
-      class="input"
-      name="${question.title}"
-      type="${question.inputType}"
-      required=${question.required} 
-    />
-  </div>
-  `;
-
-  container.innerHTML = html;
 }

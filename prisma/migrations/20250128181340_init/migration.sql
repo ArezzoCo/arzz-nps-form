@@ -37,6 +37,7 @@ CREATE TABLE "Question" (
     "description" TEXT,
     "inputType" TEXT NOT NULL,
     "required" BOOLEAN NOT NULL,
+    "showQuestion" BOOLEAN NOT NULL,
     "answers" TEXT NOT NULL,
     "formId" INTEGER NOT NULL,
 

@@ -20,10 +20,12 @@ import {
   InlineStack,
   EmptyState,
   ResourceList,
+  Divider,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { DeleteForm, GetForms } from "app/form/form.service";
+import {DynamicFormManager} from "app/dynamicForm/components/DynamicFormManager";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { redirect } = await authenticate.admin(request);
@@ -67,7 +69,9 @@ export default function Index() {
         <Layout.Section>
           <Card padding="0">
             {Array.from(forms.forms).length === 0 ? (
+              <>
               <EmptyStatePage />
+              </>
             ) : (
               <ResourceList
                 resourceName={{ singular: "form", plural: "forms" }}

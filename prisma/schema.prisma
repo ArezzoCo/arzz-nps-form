@@ -15,7 +15,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Session {
@@ -37,24 +37,29 @@ model Session {
 }
 
 model Form {
-  id        Int        @id @default(autoincrement())
-  title     String     @unique
-  formType  String
-  questions Question[]
-  OrderNPS  OrderNPS[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                         Int        @id @default(autoincrement())
+  title                      String     @unique
+  formType                   String
+  orderMetafieldNamespace    String
+  orderMetafieldKey          String
+  customerMetafieldNamespace String
+  customerMetafieldKey       String
+  questions                  Question[]
+  OrderNPS                   OrderNPS[]
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
 }
 
 model Question {
-  id          Int     @id @default(autoincrement())
-  title       String  @unique
-  description String?
-  inputType   String
-  required    Boolean
-  answers     String
-  formId      Int
-  Form        Form    @relation(fields: [formId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  id           Int     @id @default(autoincrement())
+  title        String  @unique
+  description  String?
+  inputType    String
+  required     Boolean
+  showQuestion Boolean
+  answers      String
+  formId       Int
+  Form         Form    @relation(fields: [formId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model OrderNPS {
@@ -68,36 +73,36 @@ model OrderNPS {
 }
 
 model DynamicForm {
-  id        String      @id @default(uuid())
-  name     String   @unique
+  id          String   @id @default(uuid())
+  name        String   @unique
   description String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   steps Step[]
 }
 
 model Step {
-  id String @default(cuid()) @id
-  formId String
-  form DynamicForm @relation(fields: [formId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  title String
+  id          String            @id @default(cuid())
+  formId      String
+  form        DynamicForm       @relation(fields: [formId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  title       String
   description String?
-  order Int
-  questions DynamicQuestion[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  order       Int
+  questions   DynamicQuestion[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 model DynamicQuestion {
-  id String @id @default(uuid())
-  stepId String
-  step Step @relation(fields: [stepId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  text String
-  type String
-  order Int
-  required Boolean
-  options Option[]
+  id         String              @id @default(uuid())
+  stepId     String
+  step       Step                @relation(fields: [stepId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  text       String
+  type       String
+  order      Int
+  required   Boolean
+  options    Option[]
   conditions QuestionCondition[]
 
   createdAt DateTime @default(now())
@@ -107,19 +112,19 @@ model DynamicQuestion {
 }
 
 model Option {
-  id String @id @default(uuid())
+  id         String          @id @default(uuid())
   questionId String
-  question DynamicQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  text String
-  value String
+  question   DynamicQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  text       String
+  value      String
 }
 
 model QuestionCondition {
-  id            String       @id @default(uuid())
+  id            String          @id @default(uuid())
   questionId    String
-  question      DynamicQuestion     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question      DynamicQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
   dependentOnId String
-  dependentOn   DynamicQuestion     @relation("DependentQuestion", fields: [dependentOnId], references: [id], onDelete: Cascade)
-  conditionType String    
+  dependentOn   DynamicQuestion @relation("DependentQuestion", fields: [dependentOnId], references: [id], onDelete: Cascade)
+  conditionType String
   value         String
 }

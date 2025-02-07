@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DynamicFormService } from "../dynamicForm.service";
 
 export interface FormData extends Partial<DynamicForm>{
-  steps: StepData[]
+  steps?: StepData[]
 }
 
 export interface StepData extends Partial<Step>{
@@ -182,7 +182,7 @@ export const useDynamicForm = () => {
       updatedForm.steps?.forEach(step => {
         step.questions = step.questions.map(q => {
           if (q.id === questionID) {
-            q.conditions.push(condition);
+            
           }
           return q;
         })
@@ -214,7 +214,7 @@ export const useDynamicForm = () => {
       const updatedForm = { ...form };
       updatedForm.steps?.forEach(step => {
         step.questions = step.questions.map(q => {
-          q.conditions = q.conditions.filter(c => c.id !== conditionID)
+          //q.conditions = q.conditions.filter(c => c.id !== conditionID)
           return q;
         })
       })
@@ -234,7 +234,7 @@ export const useDynamicForm = () => {
       updatedForm.steps?.forEach(step => {
         step.questions = step.questions.map(q => {
           if (q.id === questionID) {
-            q.options.push(option);
+            //q.options.push(option);
           }
           return q;
         })
@@ -254,7 +254,7 @@ export const useDynamicForm = () => {
       const updatedForm = { ...form };
       updatedForm.steps?.forEach(step => {
         step.questions = step.questions.map(q => {
-          q.options = q.options.map(o => o.id === optionID ? option : o)
+          //q.options = q.options.map(o => o.id === optionID ? option : o)
           return q;
         })
       })
@@ -273,7 +273,7 @@ export const useDynamicForm = () => {
       const updatedForm = { ...form };
       updatedForm.steps?.forEach(step => {
         step.questions = step.questions.map(q => {
-          q.options = q.options.filter(o => o.id !== optionID)
+          //q.options = q.options.filter(o => o.id !== optionID)
           return q;
         })
       })

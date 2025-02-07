@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://bolt-lay-happens-body.trycloudflare.com"
+application_url = "https://african-engines-rays-increasing.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_orders,write_orders,write_products"
+scopes = "read_customers,read_orders,write_customers,write_orders,write_products"
 
 [auth]
 redirect_urls = [
-  "https://bolt-lay-happens-body.trycloudflare.com/auth/callback",
-  "https://bolt-lay-happens-body.trycloudflare.com/auth/shopify/callback",
-  "https://bolt-lay-happens-body.trycloudflare.com/api/auth/callback"
+  "https://african-engines-rays-increasing.trycloudflare.com/auth/callback",
+  "https://african-engines-rays-increasing.trycloudflare.com/auth/shopify/callback",
+  "https://african-engines-rays-increasing.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
