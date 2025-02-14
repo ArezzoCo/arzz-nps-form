@@ -40,10 +40,10 @@ model Form {
   id                         Int        @id @default(autoincrement())
   title                      String     @unique
   formType                   String
-  orderMetafieldNamespace    String
-  orderMetafieldKey          String
-  customerMetafieldNamespace String
-  customerMetafieldKey       String
+  orderMetafieldNamespace    String?
+  orderMetafieldKey          String?
+  customerMetafieldNamespace String?
+  customerMetafieldKey       String?
   questions                  Question[]
   OrderNPS                   OrderNPS[]
   createdAt                  DateTime   @default(now())

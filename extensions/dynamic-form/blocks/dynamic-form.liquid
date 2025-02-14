@@ -7,6 +7,9 @@
     id="dynamic-form"
     data-form-type="{{ block.settings.form_type }}"
     data-form-id="{{ block.settings.form_id }}"
+    {% if customer %} 
+      data-customer-id="{{ customer.id }}"
+    {% endif %}
   >
     {% comment %} Dynamic form is rendered here {% endcomment %}
   </div>

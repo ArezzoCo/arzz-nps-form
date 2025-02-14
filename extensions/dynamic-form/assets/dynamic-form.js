@@ -21,16 +21,25 @@ const handleSubmitForm = async (e) => {
   const form = e.target;
   const questionsObj = Object.fromEntries(new FormData(form));
   const orderId = form.querySelector("#orderId").value;
-  const formId = form.dataset.id;
+  const userId = form.querySelector("#userId").value;
+
+  console.log('dataset', form.dataset);
+
   console.log("submitting form");
   console.log("Questions Object", questionsObj);
   console.log("order ID", orderId);
-  console.log("form ID", formId);
+  console.log("user ID", userId);
+
+  let formdataset = {};
+
+  Object.assign(formdataset, form.dataset);
+
 
   const reqBody = {
+    form: formdataset,
     questions: questionsObj,
+    userId,
     orderId,
-    formId,
   };
 
   console.log("req body", reqBody);
@@ -44,20 +53,32 @@ const handleSubmitForm = async (e) => {
 };
 
 const renderForm = async (formObj) => {
+  //TODO: add metafield info and submit it
   const query = new URLSearchParams(window.location.search);
   const orderId = query.get("orderId");
+  const userId = document.getElementById("dynamic-form").getAttribute('data-customer-id');
   //const orderId = "6152169062700" // get from url
 
   const formHTML = `
-  <form onsubmit="handleSubmitForm(event);" data-id="${formObj.id}">
+  <form 
+    onsubmit="handleSubmitForm(event);" 
+    data-id="${formObj.id}"
+    data-order-metafield-namespace="${formObj.orderMetafieldNamespace}"
+    data-order-metafield-key="${formObj.orderMetafieldKey}"
+    data-customer-metafield-namespace="${formObj.orderMetafieldNamespace}"
+    data-customer-metafield-key="${formObj.customerMetafieldKey}"
+  >
     <h2>${formObj.title}</h2>
     <div class="form-group">
       <h3>Order</h3>
       <input id="orderId" class="input" type="text" name="orderId" required disabled value="${orderId ? orderId : "please provide a valid order id"}">
+      <input style="margin-top: 8px;" id="userId" class="input" type="text" name="userId" required disabled value="${userId ? userId : "login to get user id"}">
     </div>
-    ${formObj.questions.map((question, index) => {
-      return renderQuestion(question);
-    }).join("")}
+    ${formObj.questions
+      .map((question, index) => {
+        return renderQuestion(question);
+      })
+      .join("")}
     <button class="submit-bttn" type="submit">Submit</button>
   </form>
   `;
@@ -83,7 +104,7 @@ const renderQuestion = (question) => {
               gap: .4rem;
             "
           >
-            ${Array.from({ length: npsObj.npsRange +1 })
+            ${Array.from({ length: npsObj.npsRange + 1 })
               .map((_, index) => {
                 const value = index;
                 return `
@@ -91,7 +112,7 @@ const renderQuestion = (question) => {
                   for="nps-${value}" 
                   onclick="handleNpsChange(event)"
                   style="
-                    background-color: ${value > npsObj.firstRange ? 'green' : value <= npsObj.firstRange && value > npsObj.secondRange ? 'yellowgreen' : 'red' };
+                    background-color: ${value > npsObj.firstRange ? "green" : value <= npsObj.firstRange && value > npsObj.secondRange ? "yellowgreen" : "red"};
                     color: white;
                     padding: 1rem;
                     border-radius: 4px;
@@ -111,45 +132,44 @@ const renderQuestion = (question) => {
                 />
               `;
               })
-              .join('')}
+              .join("")}
           </div>
           </div>
           <div id="nps-conditional-questions"></div>
       </div>
     `;
   }
-  
-  return inputHTML(question.inputType, question)
-  
+
+  return inputHTML(question.inputType, question);
 };
 
 function handleNpsChange(e) {
   const nps = window.nps;
   const selectedRange = e.target.getAttribute("for").split("-")[1];
-  const container = document.getElementById('nps-conditional-questions')
+  const container = document.getElementById("nps-conditional-questions");
   let question;
-  if(selectedRange <= nps.firstRange && selectedRange > nps.secondRange) {
-    question = nps.firstQuestion
+  if (selectedRange <= nps.firstRange && selectedRange > nps.secondRange) {
+    question = nps.firstQuestion;
   }
-  if(selectedRange < nps.firstRange && selectedRange <= nps.secondRange) {
-    question = nps.secondQuestion
+  if (selectedRange < nps.firstRange && selectedRange <= nps.secondRange) {
+    question = nps.secondQuestion;
   }
-  if (!question){
+  if (!question) {
     container.innerHTML = "";
     return;
   }
-  console.log('question', question)
+  console.log("question", question);
   console.log("nps", nps);
 
   const html = inputHTML(question.inputType, question);
-  console.log('html', html)
+  console.log("html", html);
 
   container.innerHTML = html;
 }
 
-const inputHTML = (inputType, question) =>{
-  if(inputType === 'select'){
-    const answers = question.answers.split(',').map((q) => q.trim());
+const inputHTML = (inputType, question) => {
+  if (inputType === "select") {
+    const answers = question.answers.split(",").map((q) => q.trim());
     return `
       <div class="form-group select">
         <h3>${question.title}</h3>
@@ -159,14 +179,14 @@ const inputHTML = (inputType, question) =>{
             .map((answer) => {
               return `<option value="${answer}">${answer}</option>`;
             })
-            .join('')}
+            .join("")}
         </select>
       </div>
     `;
   }
 
-  if(inputType === 'radio'){
-    const answers = question.answers.split(',').map((q) => q.trim());
+  if (inputType === "radio") {
+    const answers = question.answers.split(",").map((q) => q.trim());
     return `
       <div class="form-group radio">
         <h3>${question.title}</h3>
@@ -185,14 +205,14 @@ const inputHTML = (inputType, question) =>{
                 ${answer}
               </label>`;
             })
-            .join('')}
+            .join("")}
         </div>
       </div>
     `;
   }
 
-  if(inputType === 'checkbox'){
-    const answers = question.answers.split(',').map((q) => q.trim());
+  if (inputType === "checkbox") {
+    const answers = question.answers.split(",").map((q) => q.trim());
     return `
       <div class="form-group checkbox">
         <h3>${question.title}</h3>
@@ -211,7 +231,7 @@ const inputHTML = (inputType, question) =>{
                   ${answer}
                 </label>`;
             })
-            .join('')}
+            .join("")}
         </div>
       </div>
     `;
@@ -224,4 +244,4 @@ const inputHTML = (inputType, question) =>{
       <input class="input" type="${question.inputType}" name="${question.title}" ${question.required ? "required" : ""}>
     </div>
   `;
-}
+};
