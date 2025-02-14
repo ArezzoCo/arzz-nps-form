@@ -157,7 +157,17 @@ const getOrderMetafieldData = async (
   orderMetafieldKey: string,
 ) => {
   try {
-    const response = await admin?.graphql(GET_ORDER_METAFIELD_DATA({orderId, orderMetafieldNamespace, orderMetafieldKey}));
+  const query = `#graphql
+  query GetOrderMetafieldData {
+    order(id: "gid://shopify/Order/${orderId}") {
+      id
+      metafield(namespace: "${orderMetafieldNamespace}" ,key: "${orderMetafieldKey}"){
+        value
+      }
+    }
+  }
+  `;
+    const response = await admin?.graphql((query));
     if (response?.ok) {
       const data = await response.json();
       console.log("order data", data);
