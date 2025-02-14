@@ -26,17 +26,19 @@ interface FormSubmitData {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  //const { admin, session } = await authenticate.public.appProxy(request)
   //const { admin } = await authenticate.admin(request);
-  const { admin } = (await authenticate.public.appProxy(request))
+  const { admin, session } = (await authenticate.public.appProxy(request))
     ? await authenticate.public.appProxy(request)
     : await authenticate.admin(request);
-  console.log("chegou na action");
+  console.log("chegou na action", session?.shop);
 
   const data = (await request.json()) as FormSubmitData;
   //.then((data) => JSON.parse(data));
   console.log(data);
 
   // check if user is valid
+  console.log("running on ", session?.shop)
   const customerGid = await getCustomerMetafieldData(
     admin,
     data.userId,
@@ -46,13 +48,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   console.log("customer id", customerGid);
 
   // check if order is valid
+  console.log("searching order with id ", data.orderId)
   const orderGid = await getOrderMetafieldData(
     admin,
     data.orderId,
     data.form.orderMetafieldNamespace,
     data.form.orderMetafieldKey,
-  ).then((res) => (res !== null ? res.id : null));
-  console.log("order id", orderGid);
+  ).then((res) => (
+    res !== null ? res.id : null
+  ));
+  console.log("valid order gid", orderGid);
 
   if (!orderGid) {
     return json(
@@ -170,7 +175,7 @@ const getOrderMetafieldData = async (
     const response = await admin?.graphql((query));
     if (response?.ok) {
       const data = await response.json();
-      console.log("order data", data);
+      console.log("order data", data.data);
       return data.data?.order;
     }
   } catch {

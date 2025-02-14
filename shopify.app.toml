@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://arzz-nps-form-git-main-ecom-ops-projects.vercel.app/"
+application_url = "https://there-fancy-campaigns-porter.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_customers,read_orders,write_customers,write_orders,write_products
 
 [auth]
 redirect_urls = [
-  "https://arzz-nps-form-git-main-ecom-ops-projects.vercel.app/auth/callback",
-  "https://arzz-nps-form-git-main-ecom-ops-projects.vercel.app/auth/shopify/callback",
-  "https://arzz-nps-form-git-main-ecom-ops-projects.vercel.app/api/auth/callback"
+  "https://there-fancy-campaigns-porter.trycloudflare.com/auth/callback",
+  "https://there-fancy-campaigns-porter.trycloudflare.com/auth/shopify/callback",
+  "https://there-fancy-campaigns-porter.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
@@ -29,10 +29,10 @@ api_version = "2024-10"
   topics = [ "app/uninstalled" ]
   uri = "/webhooks/app/uninstalled"
 
-[pos]
-embedded = false
-
 [app_proxy]
-url = "https://arzz-nps-form-git-main-ecom-ops-projects.vercel.app/"
+url = "https://there-fancy-campaigns-porter.trycloudflare.com"
 subpath = "arzz-form"
 prefix = "apps"
+
+[pos]
+embedded = false
