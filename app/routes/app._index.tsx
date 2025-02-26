@@ -24,7 +24,6 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { DynamicFormManager } from "app/dynamicForm/components/DynamicFormManager";
 import { GetForms } from "app/form/actions/GetForms";
 import { DeleteForm } from "app/form/actions/DeleteForm";
 

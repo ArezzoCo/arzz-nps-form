@@ -26,8 +26,6 @@ interface FormSubmitData {
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  //const { admin, session } = await authenticate.public.appProxy(request)
-  //const { admin } = await authenticate.admin(request);
   const { admin, session } = (await authenticate.public.appProxy(request))
     ? await authenticate.public.appProxy(request)
     : await authenticate.admin(request);
