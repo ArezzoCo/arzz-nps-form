@@ -8,7 +8,6 @@ import {
   Divider,
 } from "@shopify/polaris";
 import InputTypeSelector from "./InputTypeSelector";
-import { useQuestionState } from "../hooks/useQuestionState";
 import { useState } from "react";
 import { Prisma } from "@prisma/client";
 
@@ -28,7 +27,7 @@ interface props {
     isEditing: boolean;
     index?: number;
   };
-  newQuestion: Prisma.QuestionCreateWithoutFormInput;
+  question: Prisma.QuestionCreateWithoutFormInput;
   handleQuestionChange: (key: string, value: any) => void;
   setNpsData: any;
   npsData: npsData;
@@ -50,12 +49,14 @@ export const AddNewQuestionModal = ({
   title,
   primaryAction,
   secondaryActions,
-  newQuestion,
+  question,
   handleQuestionChange,
   setNpsData,
   npsData,
 }: props) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  console.log("question", question)
 
   return (
     <Modal
@@ -82,14 +83,14 @@ export const AddNewQuestionModal = ({
           )}
           <InputTypeSelector
             label="Input Type"
-            value={newQuestion.inputType}
+            value={question.inputType}
             onChange={(value) => {
               handleQuestionChange("inputType", value);
             }}
           />
           <TextField
             label="Question Title"
-            value={newQuestion.title}
+            value={question.title}
             onChange={(value) => {
               handleQuestionChange("title", value);
             }}
@@ -98,14 +99,14 @@ export const AddNewQuestionModal = ({
           />
           <TextField
             label="Question Subtitle"
-            value={newQuestion.description!}
+            value={question.description!}
             onChange={(value) => handleQuestionChange("description", value)}
             multiline
             autoComplete="off"
           />
           <Checkbox
             label="Answer Required"
-            checked={newQuestion.required || false}
+            checked={question.required || false}
             onChange={(value) => {
               handleQuestionChange("required", value);
               if (value) {
@@ -115,7 +116,7 @@ export const AddNewQuestionModal = ({
           />
           <Checkbox
             label="Show Question"
-            checked={newQuestion.showQuestion || false}
+            checked={question.showQuestion || false}
             onChange={(value) => {
               handleQuestionChange("showQuestion", value);
               if (!value) {
@@ -123,16 +124,16 @@ export const AddNewQuestionModal = ({
               }
             }}
           />
-          {newQuestion.inputType !== "nps" && (
+          {question.inputType !== "nps" && (
             <TextField
               label="Answers"
               helpText="Enter the possible answers separated by comma ','"
-              value={newQuestion.answers}
+              value={question.answers}
               onChange={(value) => handleQuestionChange("answers", value)}
               autoComplete="off"
             />
           )}
-          {newQuestion.inputType === "nps" && (
+          {question.inputType === "nps" && (
             <BlockStack gap="500">
               <Text as="h2" variant="headingMd">
                 NPS Options

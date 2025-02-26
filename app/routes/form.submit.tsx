@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { ActionFunctionArgs, json } from "@remix-run/node";
-import { GetForm } from "app/form/form.service";
+import { GetForm } from "app/form/actions/GetForm";
 import { METAFIELDS_SET } from "app/graphql/mutations/metafieldsSet";
 import { GET_CUSTOMER_METAFIELD_DATA } from "app/graphql/querys/getCustomerMetafieldData";
 import { GET_ORDER_METAFIELD_DATA } from "app/graphql/querys/getOrderMetafieldData";
@@ -44,7 +44,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     data.userId,
     data.form.customerMetafieldNamespace,
     data.form.customerMetafieldKey,
-  ).then((res) => (res.id !== null ? res.id : null));
+  ).then((res) => (res ? res.id : null));
   console.log("customer id", customerGid);
 
   // check if order is valid
@@ -191,12 +191,23 @@ const saveNPSonOrderMetafield = async (
   orderMetafieldKey: string,
   nps: any
 ) => {
-  //const orderMetafield = await getOrderMetafieldData(admin, data.userId);
-  //const previousSurveys = orderMetafield?.metafield?.value?.surveys;
   const orderId = orderGid.split("/").pop();
   console.log("orderId", orderId);
 
+  const surveys = await getOrderMetafieldData(
+    admin,
+    orderId!,
+    orderMetafieldNamespace,
+    orderMetafieldKey
+  ).then((res) => {
+    return res.metafield ? JSON.parse(res.metafield.value) : null;
+  })
+
   console.log(`saving on metafield ${orderMetafieldNamespace}.${orderMetafieldKey}`);
+
+  if (!surveys){
+    console.log("no surveys found")
+  }
 
   const variables = {
     metafields: [
@@ -205,7 +216,9 @@ const saveNPSonOrderMetafield = async (
         namespace: orderMetafieldNamespace,
         ownerId: orderGid,
         type: "json",
-        value: JSON.stringify(nps),
+        value: JSON.stringify({
+          surveys: surveys ? [...surveys.surveys, nps] : [nps]
+        }),
       },
     ],
   };
@@ -228,7 +241,7 @@ const saveNPSonCustomerMetafield = async (
   console.log(
     `searching on metafield ${customerMetafieldNamespace}.${customerMetafieldKey}`,
   );
-  const customerMetafieldContent = await getCustomerMetafieldData(
+  const surveys = await getCustomerMetafieldData(
     admin,
     customerId!,
     customerMetafieldNamespace,
@@ -236,48 +249,48 @@ const saveNPSonCustomerMetafield = async (
   ).then((res) => {
     return res.metafield ? JSON.parse(res.metafield.value) : null;
   });
-  console.log("customerMetafieldContent", customerMetafieldContent);
+  console.log("surveys", surveys);
 
-  if (!customerMetafieldContent) {
+  const answered_ids = await getCustomerMetafieldData(
+    admin,
+    customerId!,
+    "custom",
+    "answered_surveys",
+  ).then((res) => {
+    return res.metafield ? JSON.parse(res.metafield.value) : null;
+  });
+  console.log("answered_ids", answered_ids);
+
+  if (!surveys) {
     console.log("No surveys found, creating new one");
-    console.log("nps", nps);
-
-    const newMetafieldContent = {
-      surveys: [nps],
-    };
-
-    const variables = {
-      metafields: [
-        {
-          key: customerMetafieldKey,
-          namespace: customerMetafieldNamespace,
-          ownerId: customerGid,
-          type: "json",
-          value: JSON.stringify(newMetafieldContent),
-        },
-      ],
-    };
-
-    const response = await admin?.graphql(METAFIELDS_SET, { variables });
-    return await response?.json();
   }
-
-  console.log("Adding new survey to existing surveys");
 
   const variables = {
     metafields: [
       {
-        key: "surveys",
+        key: customerMetafieldKey,
+        namespace: customerMetafieldNamespace,
+        ownerId: customerGid,
+        type: "json",
+        value: JSON.stringify({
+          surveys: surveys ? [...surveys.surveys, nps] : [nps],
+        }),
+      },
+      {
+        key: "answered_surveys",
         namespace: "custom",
         ownerId: customerGid,
         type: "json",
         value: JSON.stringify({
-          surveys: [nps, ...customerMetafieldContent.surveys],
-        }),
-      },
+          ids: answered_ids ? [ ...answered_ids.ids, nps.formId ] : [nps.formId]
+        })
+      }
     ],
   };
 
   const response = await admin?.graphql(METAFIELDS_SET, { variables });
-  return await response?.json();
+  const data = await response?.json();
+  const metafields = data?.data.metafieldsSet
+
+  return metafields
 };

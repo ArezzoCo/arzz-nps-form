@@ -1,4 +1,5 @@
 export const questionInputOptions = [
+  { label: "Choose one", value: "", disabled: true},
   { label: "NPS Question", value: "nps" },
   { label: "Text", value: "text" },
   { label: "Number", value: "number" },
@@ -12,6 +13,7 @@ export const questionInputOptions = [
 ];
 
 export const noNpsQuestionInputOptions = [
+  { label: "Choose one", value: "", disabled: true},
   { label: "Text", value: "text" },
   { label: "Number", value: "number" },
   { label: "Email", value: "email" },

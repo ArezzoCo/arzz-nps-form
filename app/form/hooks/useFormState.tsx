@@ -12,7 +12,7 @@ export const useFormState = () => {
     formType: formTypes[0].value,
     customerMetafieldKey: "surveys",
     customerMetafieldNamespace: "custom",
-    orderMetafieldKey: "surveys",
+    orderMetafieldKey: "nps",
     orderMetafieldNamespace: "custom",
   });
 

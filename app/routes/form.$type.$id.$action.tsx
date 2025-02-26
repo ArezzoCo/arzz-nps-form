@@ -1,6 +1,6 @@
 import { json, LoaderFunctionArgs } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { GetForm, GetForms } from "app/form/form.service";
+import { GetForm } from "app/form/actions/GetForm";
 import { authenticate } from "app/shopify.server";
 
 export const loader = async ({request, params}: LoaderFunctionArgs) => {

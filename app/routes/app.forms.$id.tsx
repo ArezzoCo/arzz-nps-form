@@ -2,6 +2,7 @@ import { Form, Prisma, Question } from "@prisma/client";
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { useLoaderData, useSubmit } from "@remix-run/react";
 import {
+  Badge,
   BlockStack,
   Button,
   ButtonGroup,
@@ -27,9 +28,11 @@ import {
   PageUpIcon,
 } from "@shopify/polaris-icons";
 import { CreateForm } from "app/form/actions/CreateForm";
+import { GetForm } from "app/form/actions/GetForm";
+import { UpdateFormAndQuestions } from "app/form/actions/UpdateForm";
 import { AddNewQuestionModal } from "app/form/components/AddNewQuestionModal";
+import { DropdownInput } from "app/form/components/DropdownInput";
 import InputTypeSelector from "app/form/components/InputTypeSelector";
-import { GetForm, UpdateForm } from "app/form/form.service";
 import { useFormState } from "app/form/hooks/useFormState";
 import { useQuestionState } from "app/form/hooks/useQuestionState";
 import { authenticate } from "app/shopify.server";
@@ -48,7 +51,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         formType: "nps",
         customerMetafieldKey: "surveys",
         customerMetafieldNamespace: "custom",
-        orderMetafieldKey: "surveys",
+        orderMetafieldKey: "nps",
         orderMetafieldNamespace: "custom",
         questions: [],
       } as Prisma.FormUncheckedCreateInput,
@@ -63,26 +66,25 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request, params }: LoaderFunctionArgs) => {
-  const formData = await request.formData();
-  const form = formData.get(
-    "form",
-  ) as unknown as Prisma.FormUncheckedCreateInput;
-  const questions = formData.get(
-    "questions",
-  ) as unknown as Prisma.QuestionCreateWithoutFormInput[];
+  const requestFormData = await request.formData();
+  const requestData = Object.fromEntries(requestFormData);
+  const formData: Prisma.FormUncheckedCreateInput = JSON.parse(
+    requestData?.form as string,
+  );
+  const questionsData: Prisma.QuestionCreateWithoutFormInput[] = Array.from(
+    formData.questions as any,
+  );
 
-  console.log("action form", form);
-  console.log("action questions", questions);
+  console.log("formData", typeof formData, formData);
+  console.log("questionsData", typeof questionsData, questionsData);
   //create or update form
   console.log(params.id);
   if (params.id == "new") {
-    await CreateForm(form, questions);
-
+    await CreateForm(formData);
   } else {
     //update form
-    console.log("update form");
-    return null;
-    await UpdateForm(Number(params.id), form, questions);
+    console.log("form", formData);
+    await UpdateFormAndQuestions(Number(formData.id), formData);
   }
   return redirect("/app");
 };
@@ -113,7 +115,7 @@ export default function Index() {
 }
 
 //TODO: quando clicado em uma questão, carregar detalhes da mesa
-//TODO: fix update de questões 
+//TODO: fix update de questões
 
 interface FormComponentProps {
   formProp?: Prisma.FormUncheckedCreateInput;
@@ -121,11 +123,11 @@ interface FormComponentProps {
 }
 const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
   const [isDirty, setIsDirty] = useState(false);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const { form, formTypes, handleChange, setForm } = useFormState();
   const {
-    setNewQuestion,
-    newQuestion,
+    setQuestion,
+    question,
     questions,
     handleQuestionChange,
     setQuestions,
@@ -142,6 +144,7 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
   const [isEditing, setIsEditing] = useState<{
     isEditing: boolean;
     index?: number;
+    question?: typeof question;
   }>({
     isEditing: false,
   });
@@ -153,36 +156,59 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
     }
   }, []);
 
-  const toggleModal = () => {
+  const toggleModal = (questionData?: typeof question) => {
     console.log("toggleModal");
+
+    //set editing to false when closing
     if (modalActive) setIsEditing({ isEditing: false });
+
+    //updates question when data is passed
+    if (questionData) {
+      setQuestion(questionData);
+    }
+    if (questionData?.inputType == "nps") {
+      console.log("isNPS", JSON.parse(questionData.answers));
+      setNpsData(JSON.parse(questionData.answers));
+    }
+
     setModalActive(!modalActive);
   };
 
   const handleAddQuestion = () => {
-    console.log("add nova questao", newQuestion);
+    console.log("add nova questao", question);
 
-    if (newQuestion.inputType == "nps") {
-      setNewQuestion({
-        ...newQuestion,
+    if (!question.inputType) {
+      setErrors((prev) => ({
+        ...prev,
+        questionInputType: "Select an input type",
+      }));
+      shopify.toast.show(errors.questionInputType);
+      return;
+    }
+
+    if (question.inputType == "nps") {
+      setQuestion({
+        ...question,
         answers: JSON.stringify(npsData),
       });
     }
 
-    if (!newQuestion.title) {
+    if (!question.title) {
       setErrors((prev) => ({ ...prev, questionTitle: "Title is required" }));
+      shopify.toast.show("Title is required");
       return;
     }
 
-    if (!newQuestion.inputType) {
+    if (!question.inputType) {
       setErrors((prev) => ({
         ...prev,
         questionInputType: "Input type is required",
       }));
+      shopify.toast.show("Input type is required");
       return;
     }
 
-    if (newQuestion.answers.length < 1) {
+    if (question.answers.length < 1) {
       setErrors((prev) => ({
         ...prev,
         questionAnswers: "At least 2 answers are required",
@@ -194,11 +220,12 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
       console.log("update question");
       const index = isEditing.index !== undefined ? isEditing.index : -1;
       if (index >= 0) {
-        updateQuestion(index, newQuestion);
+        updateQuestion(index, question);
       }
     } else {
-      console.log("questao adicionada", newQuestion);
-      addQuestion(newQuestion);
+      console.log("questao adicionada", question);
+      shopify.toast.show("Questão Adicionada!");
+      addQuestion(question);
     }
     toggleModal();
     setIsEditing({ isEditing: false });
@@ -206,16 +233,34 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
 
   const submit = useSubmit();
   const handleSubmit = async () => {
-    setIsLoading(true);
-    console.log("submit form", form);
-    console.log("submit questions", questions);
+    try {
+      setIsLoading(true);
+      console.log("submit form", form);
+      console.log("submit questions", questions);
 
-    const formData = new FormData();
-    formData.append("form", JSON.stringify(form));
-    formData.append("questions", JSON.stringify(questions));
+      if (form.title == "") {
+        return shopify.toast.show("Adicione um título");
+      }
 
-    submit(formData, { method: "POST" });
-    setIsLoading(false);
+      if (questions.length < 1) {
+        return shopify.toast.show("Adicione pelo menos uma questão");
+      }
+
+      const formData = new FormData();
+      formData.append(
+        "form",
+        JSON.stringify({
+          ...form,
+          questions,
+        }),
+      );
+
+      submit(formData, { method: "POST" });
+    } catch (e: any) {
+      shopify.toast.show(e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const [importModalOpen, setImportModalOpen] = useState<boolean>(false);
@@ -296,63 +341,86 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
 
       <FormLayout.Group>
         <BlockStack gap="500">
-        <Text as="h3" variant="headingMd">
+          <Text as="h3" variant="headingMd">
             Metafield Configuration
-        </Text>
-          <Text as="h3" variant="headingSm">
-            Order Metafield
           </Text>
-          <TextField
-            label="Metafield Namespace"
-            value={form?.orderMetafieldNamespace ?? undefined}
-            onChange={(value) => {
-              handleChange("orderMetafieldNamespace", value);
-            }}
-            autoComplete="off"
-          />
-          <TextField
-            label="Metafield Key"
-            value={form?.orderMetafieldKey ?? undefined}
-            onChange={(value) => {
-              handleChange("orderMetafieldKey", value);
-            }}
-            autoComplete="off"
-          />
 
-          <Text as="h3" variant="headingSm">
-            Customer Metafield
-          </Text>
-          <TextField
-            label="Metafield Namespace"
-            value={form?.customerMetafieldNamespace ?? undefined}
-            onChange={(value) => {
-              handleChange("customerMetafieldNamespace", value);
-            }}
-            autoComplete="off"
-          />
-          <TextField
-            label="Metafield Key"
-            value={form?.customerMetafieldKey ?? undefined}
-            onChange={(value) => {
-              handleChange("customerMetafieldKey", value);
-            }}
-            autoComplete="off"
-          />
-          </BlockStack>  
+          <Card>
+            <DropdownInput
+              titleChild={
+                <Text as="h3" variant="headingSm">
+                  Order Metafield
+                </Text>
+              }
+              innerChild={
+                <InlineStack align="start" gap={"500"}>
+                  <TextField
+                    label="Metafield Namespace"
+                    value={form?.orderMetafieldNamespace ?? undefined}
+                    onChange={(value) => {
+                      handleChange("orderMetafieldNamespace", value);
+                    }}
+                    autoComplete="off"
+                  />
+                  <TextField
+                    label="Metafield Key"
+                    value={form?.orderMetafieldKey ?? undefined}
+                    onChange={(value) => {
+                      handleChange("orderMetafieldKey", value);
+                    }}
+                    autoComplete="off"
+                  />
+                </InlineStack>
+              }
+            />
+          </Card>
+          <Card>
+            <DropdownInput
+              titleChild={
+                <Text as="h3" variant="headingSm">
+                  Customer Metafield
+                </Text>
+              }
+              innerChild={
+                <InlineStack align="start" gap={"500"}>
+                  <TextField
+                    label="Metafield Namespace"
+                    value={form?.customerMetafieldNamespace ?? undefined}
+                    onChange={(value) => {
+                      handleChange("customerMetafieldNamespace", value);
+                    }}
+                    autoComplete="off"
+                  />
+                  <TextField
+                    label="Metafield Key"
+                    value={form?.customerMetafieldKey ?? undefined}
+                    onChange={(value) => {
+                      handleChange("customerMetafieldKey", value);
+                    }}
+                    autoComplete="off"
+                  />
+                </InlineStack>
+              }
+            />
+          </Card>
+        </BlockStack>
       </FormLayout.Group>
 
       <FormLayout.Group>
         <BlockStack gap="500">
-          <Text as="h3" variant="headingMd">
-            Questions
-          </Text>
-          <Button
-            onClick={() => {
-              toggleModal();
-            }}
-          >
-            Add Question
-          </Button>
+          <InlineStack align="space-between" blockAlign="center">
+            <Text as="h3" variant="headingLg">
+              Questions
+            </Text>
+            <Button
+            variant="primary"
+              onClick={() => {
+                toggleModal();
+              }}
+            >
+              Add Question
+            </Button>
+          </InlineStack>
 
           <ResourceList
             resourceName={{ singular: "question", plural: "questions" }}
@@ -369,17 +437,31 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
                   },
                 ]}
                 onClick={() => {
+                  console.log("edit click", question);
                   setIsEditing({
                     isEditing: true,
                     index: questions.indexOf(question),
+                    question: question,
                   });
-                  toggleModal();
+                  toggleModal(question);
                 }}
               >
-                <Text as="h2" variant="bodyMd">
-                  {question.title}
-                </Text>
-                <div>{question.description}</div>
+                <InlineStack gap={"500"}>
+                  <BlockStack>
+                    <Text as="h3" variant="headingMd">
+                      {question.title}
+                    </Text>
+                    <Text as="p" variant="bodyMd">
+                      {question.description}
+                    </Text>
+                  </BlockStack>
+
+                  <Badge
+                    tone={question.inputType == "nps" ? "info" : undefined}
+                  >
+                    {question.inputType}
+                  </Badge>
+                </InlineStack>
               </ResourceItem>
             )}
           />
@@ -388,15 +470,16 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
 
       <Button
         variant="primary"
+        size="large"
         disabled={isDirty}
         loading={isLoading}
         onClick={() => {
           handleSubmit();
         }}
       >
-        Save
+        Save Form
       </Button>
-      
+
       <AddNewQuestionModal
         open={modalActive}
         onClose={toggleModal}
@@ -410,14 +493,13 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
             content: "Cancel",
             onAction: toggleModal,
           },
-        ]}  
+        ]}
         isEditing={isEditing}
         handleQuestionChange={handleQuestionChange}
         npsData={npsData}
-        newQuestion={newQuestion}
+        question={question}
         setNpsData={setNpsData}
-        />
-      
+      />
 
       <Modal
         open={importModalOpen}

@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://there-fancy-campaigns-porter.trycloudflare.com"
+application_url = "https://auditor-decided-kits-ranks.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_customers,read_orders,write_customers,write_orders,write_products
 
 [auth]
 redirect_urls = [
-  "https://there-fancy-campaigns-porter.trycloudflare.com/auth/callback",
-  "https://there-fancy-campaigns-porter.trycloudflare.com/auth/shopify/callback",
-  "https://there-fancy-campaigns-porter.trycloudflare.com/api/auth/callback"
+  "https://auditor-decided-kits-ranks.trycloudflare.com/auth/callback",
+  "https://auditor-decided-kits-ranks.trycloudflare.com/auth/shopify/callback",
+  "https://auditor-decided-kits-ranks.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
@@ -30,7 +30,7 @@ api_version = "2024-10"
   uri = "/webhooks/app/uninstalled"
 
 [app_proxy]
-url = "https://there-fancy-campaigns-porter.trycloudflare.com"
+url = "https://auditor-decided-kits-ranks.trycloudflare.com"
 subpath = "arzz-form"
 prefix = "apps"
 

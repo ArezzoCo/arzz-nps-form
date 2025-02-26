@@ -1,22 +1,20 @@
 import { Prisma } from "@prisma/client";
-import db from "../../db.server"
+import db from "../../db.server";
 
 export async function CreateForm(
-  formData: Prisma.FormCreateWithoutQuestionsInput,
-  questions: Prisma.QuestionCreateWithoutFormInput[],
+  formData: Prisma.FormCreateInput,
 ) /**: Promise<Form>*/ {
-  console.log("CreateForm form", formData);
-  console.log("CreateForm questions", questions);
-
-  const formValues = await JSON.parse(formData as any);
-  const questionValues = await JSON.parse(questions as any);
-
+  console.log("formdata", typeof formData, formData);
   const form = await db.form.create({
     data: {
-      ...formValues,
+      ...formData,
       questions: {
         createMany: {
-          data: questionValues,
+          data: Array.isArray(formData.questions)
+            ? formData.questions.map((question) => ({
+                ...question,
+              }))
+            : [],
         },
       },
     },

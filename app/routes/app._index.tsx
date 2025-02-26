@@ -24,8 +24,9 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { DeleteForm, GetForms } from "app/form/form.service";
-import {DynamicFormManager} from "app/dynamicForm/components/DynamicFormManager";
+import { DynamicFormManager } from "app/dynamicForm/components/DynamicFormManager";
+import { GetForms } from "app/form/actions/GetForms";
+import { DeleteForm } from "app/form/actions/DeleteForm";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { redirect } = await authenticate.admin(request);
@@ -54,56 +55,68 @@ export default function Index() {
   const handleDelete = async (id: number) => {
     const formData = new FormData();
     formData.append("id", id.toString());
-    submit(formData, {method: "delete"});
-  }
+    submit(formData, { method: "delete" });
+  };
 
   return (
     <Page
       title="ARZZ Forms"
-      primaryAction={{
-        content: "Create Form",
-        url: "forms/new",
-      }}
     >
       <Layout>
         <Layout.Section>
-          <Card padding="0">
-            {Array.from(forms.forms).length === 0 ? (
-              <>
-              <EmptyStatePage />
-              </>
-            ) : (
-              <ResourceList
-                resourceName={{ singular: "form", plural: "forms" }}
-                items={forms.forms}
-                renderItem={(item) => {
-                  return (
-                    <ResourceList.Item
-                      id={String(item.id)}
-                      url={`/app/forms/${item.id}`}
-                      accessibilityLabel={`View details for ${item.title}`}
-                      shortcutActions={[
-                        {
-                          content: "Delete",
-                          onAction: () => {
-                            handleDelete(item.id);
-                          },
-                        }
-                      ]}
-                    >
-                      <Text as="span">
-                        ID:{item.id}
-                      </Text>
-                      <Text as="h2" fontWeight="bold">
-                        {item.title}
-                      </Text>
+          <BlockStack gap={"500"}>
 
-                    </ResourceList.Item>
-                  );
+            <Text as="h2">TODO: AppSettings</Text>
+
+            <InlineStack align="space-between" blockAlign="center">
+              <Text as="h2" variant="headingLg">
+                Created forms:
+              </Text>
+              <Button
+                variant="primary"
+                size="large"
+                onClick={() => {
+                  navigate("forms/new");
                 }}
-              />
-            )}
-          </Card>
+              >
+                Create New Form
+              </Button>
+            </InlineStack>
+            <Card padding="200">
+              {Array.from(forms.forms).length === 0 ? (
+                <>
+                  <EmptyStatePage />
+                </>
+              ) : (
+                <ResourceList
+                  resourceName={{ singular: "form", plural: "forms" }}
+                  items={forms.forms}
+                  renderItem={(item) => {
+                    return (
+                      <ResourceList.Item
+                        id={String(item.id)}
+                        url={`/app/forms/${item.id}`}
+                        accessibilityLabel={`View details for ${item.title}`}
+                        shortcutActions={[
+                          {
+                            content: "Delete",
+                            onAction: () => {
+                              handleDelete(item.id);
+                            },
+                          },
+                        ]}
+                      >
+                        <Text as="span">ID:{item.id}</Text>
+                        <Text as="h2" fontWeight="bold">
+                          {item.title}
+                        </Text>
+                      </ResourceList.Item>
+                    );
+                  }}
+                />
+              )}
+            </Card>
+          </BlockStack>
         </Layout.Section>
       </Layout>
     </Page>

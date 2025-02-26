@@ -3,14 +3,14 @@ import { useState } from "react";
 
 export const useQuestionState = () => {
   const [questions, setQuestions] = useState<
-    Prisma.QuestionCreateWithoutFormInput[]
+    typeof question[]
   >([]);
-  const [newQuestion, setNewQuestion] =
+  const [question, setQuestion] =
     useState<Prisma.QuestionCreateWithoutFormInput>({
       title: "",
       description: "",
-      inputType: "text",
-      answers: "",
+      inputType: "select one",
+      answers: "  ",
       required: true,
       showQuestion: true,
     });
@@ -37,7 +37,7 @@ export const useQuestionState = () => {
   });
 
   const handleQuestionChange = (key: string, value: any) => {
-    setNewQuestion((prev) => ({ ...prev, [key]: value }));
+    setQuestion((prev) => ({ ...prev, [key]: value }));
   };
   const addQuestion = (question: Prisma.QuestionCreateWithoutFormInput) => {
     setQuestions((prev) => [...prev, question]);
@@ -59,8 +59,8 @@ export const useQuestionState = () => {
   };
 
   return {
-    setNewQuestion,
-    newQuestion,
+    setQuestion,
+    question,
     questions,
     handleQuestionChange,
     addQuestion,
