@@ -4,7 +4,7 @@ import { GetForm } from "app/form/actions/GetForm";
 import { METAFIELDS_SET } from "app/graphql/mutations/metafieldsSet";
 import { GET_CUSTOMER_METAFIELD_DATA } from "app/graphql/querys/getCustomerMetafieldData";
 import { GET_ORDER_METAFIELD_DATA } from "app/graphql/querys/getOrderMetafieldData";
-import { CreateOrderNPS } from "app/orderNPS/orderNPS.service";
+import { CreateOrderNPS } from "app/order/actions/createOrderNPS";
 import { authenticate } from "app/shopify.server";
 import { AdminApiContextWithoutRest } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients";
 
