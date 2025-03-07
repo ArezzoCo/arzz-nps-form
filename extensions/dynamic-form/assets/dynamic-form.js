@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log(formObj);
   const formHTML = await renderForm(formObj);
   formContainer.innerHTML = formHTML;
+
+  // Adicionar event listeners para os campos do formulário
+  addFocusListeners();
 });
 
 const handleSubmitForm = async (e) => {
@@ -34,7 +37,6 @@ const handleSubmitForm = async (e) => {
 
   Object.assign(formdataset, form.dataset);
 
-
   const reqBody = {
     form: formdataset,
     questions: questionsObj,
@@ -53,11 +55,9 @@ const handleSubmitForm = async (e) => {
 };
 
 const renderForm = async (formObj) => {
-  //TODO: add metafield info and submit it
   const query = new URLSearchParams(window.location.search);
   const orderId = query.get("orderId");
   const userId = document.getElementById("dynamic-form").getAttribute('data-customer-id');
-  //const orderId = "6152169062700" // get from url
 
   const formHTML = `
   <form 
@@ -128,7 +128,6 @@ const renderQuestion = (question) => {
                   value="${value}"
                   required
                   style="display: none"
-                  
                 />
               `;
               })
@@ -244,4 +243,63 @@ const inputHTML = (inputType, question) => {
       <input class="input" type="${question.inputType}" name="${question.title}" ${question.required ? "required" : ""}>
     </div>
   `;
+};
+
+// Função para adicionar event listeners de foco e blur
+const addFocusListeners = () => {
+  const formContainer = document.getElementById("dynamic-form");
+
+  const handleFocus = (e) => {
+    const input = e.target;
+    input.classList.add("active");
+    // Adicionar a classe 'active' ao label associado
+    if (input.type === "radio" || input.type === "checkbox") {
+      const label = input.closest("label");
+      if (label) {
+        label.classList.add("active");
+      }
+    }
+  };
+
+  const handleBlur = (e) => {
+    const input = e.target;
+    input.classList.remove("active");
+    // Remover a classe 'active' do label associado
+    if (input.type === "radio" || input.type === "checkbox") {
+      const label = input.closest("label");
+      if (label) {
+        label.classList.remove("active");
+      }
+    }
+  };
+
+  // Selecionar todos os campos do formulário
+  const inputs = formContainer.querySelectorAll("input, select, textarea");
+
+  // Adicionar event listeners para cada campo
+  inputs.forEach((input) => {
+    input.addEventListener("focus", handleFocus);
+    input.addEventListener("blur", handleBlur);
+  });
+
+  // Adicionar event listeners para os radio buttons
+  const radioInputs = formContainer.querySelectorAll("input[type='radio']");
+
+  radioInputs.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      // Remover a classe 'active' de todos os labels do mesmo grupo
+      document.querySelectorAll(`input[name="${radio.name}"]`).forEach((otherInput) => {
+        const otherLabel = otherInput.closest("label");
+        if (otherLabel) {
+          otherLabel.classList.remove("active");
+        }
+      });
+
+      // Adicionar a classe 'active' ao label do radio selecionado
+      const label = radio.closest("label");
+      if (label) {
+        label.classList.add("active");
+      }
+    });
+  });
 };
