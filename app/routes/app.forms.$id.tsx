@@ -36,6 +36,7 @@ import InputTypeSelector from "app/form/components/InputTypeSelector";
 import { useFormState } from "app/form/hooks/useFormState";
 import { useQuestionState } from "app/form/hooks/useQuestionState";
 import { authenticate } from "app/shopify.server";
+import { l } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 import { useEffect, useState } from "react";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -58,7 +59,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       params: params.id,
     };
   }
-  
+
   const form = await GetForm(Number(params.id));
   return {
     form,
@@ -167,9 +168,30 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
     if (questionData) {
       setQuestion(questionData);
     }
+
     if (questionData?.inputType == "nps") {
-      console.log("isNPS", JSON.parse(questionData.answers));
-      setNpsData(JSON.parse(questionData.answers));
+      //console.log("isNPS", JSON.parse(questionData.answers));
+      if (questionData?.inputType == "nps") {
+        try {
+          const parsedData = JSON.parse(questionData.answers);
+          setNpsData(parsedData);
+        } catch (error) {
+          console.error("Failed to parse NPS data:", error);
+          setNpsData({
+            npsRange: 10,
+            firstRange: 8,
+            firstQuestion: {
+              required: true,
+              showQuestion: true,
+            },
+            secondRange: 6,
+            secondQuestion: {
+              required: true,
+              showQuestion: true,
+            },
+          }); // ou algum valor padrão
+        }
+      }
     }
 
     setModalActive(!modalActive);
@@ -414,7 +436,7 @@ const FormComponent = ({ formProp, isFormEdit }: FormComponentProps) => {
               Questions
             </Text>
             <Button
-            variant="primary"
+              variant="primary"
               onClick={() => {
                 toggleModal();
               }}
