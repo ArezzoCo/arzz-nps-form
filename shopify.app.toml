@@ -1,9 +1,7 @@
-# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
-
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://recovered-grounds-belongs-term.trycloudflare.com"
+application_url = "https://arzz-nps-form-theta.vercel.app/"
 embedded = true
 
 [build]
@@ -12,25 +10,20 @@ dev_store_url = "arzz-test-store.myshopify.com"
 include_config_on_deploy = true
 
 [access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_customers,read_orders,write_customers,write_orders,write_products"
+scopes = "read_customers,read_metaobjects,read_orders,write_customers,write_metaobjects,write_orders,write_products"
 
 [auth]
-redirect_urls = [
-  "https://recovered-grounds-belongs-term.trycloudflare.com/auth/callback",
-  "https://recovered-grounds-belongs-term.trycloudflare.com/auth/shopify/callback",
-  "https://recovered-grounds-belongs-term.trycloudflare.com/api/auth/callback"
-]
+redirect_urls = ["https://arzz-nps-form-theta.vercel.app/auth/callback", "https://arzz-nps-form-theta.vercel.app/auth/shopify/callback", "https://arzz-nps-form-theta.vercel.app/api/auth/callback"]
 
 [webhooks]
 api_version = "2024-10"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
+[[webhooks.subscriptions]]
+topics = ["app/uninstalled"]
+uri = "/webhooks/app/uninstalled"
 
 [app_proxy]
-url = "https://recovered-grounds-belongs-term.trycloudflare.com"
+url = "https://arzz-nps-form-theta.vercel.app"
 subpath = "arzz-form"
 prefix = "apps"
 
