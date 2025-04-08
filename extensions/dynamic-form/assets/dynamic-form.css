@@ -25,6 +25,7 @@ form .form-group .select-options label.active {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  
 }
 
 #dynamic-form form {
