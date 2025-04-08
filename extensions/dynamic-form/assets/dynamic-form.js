@@ -61,6 +61,7 @@ const renderForm = async (formObj) => {
 
   const formHTML = `
   <form 
+    class="form"
     onsubmit="handleSubmitForm(event);" 
     data-id="${formObj.id}"
     data-order-metafield-namespace="${formObj.orderMetafieldNamespace}"
@@ -68,9 +69,8 @@ const renderForm = async (formObj) => {
     data-customer-metafield-namespace="${formObj.orderMetafieldNamespace}"
     data-customer-metafield-key="${formObj.customerMetafieldKey}"
   >
-    <h2>${formObj.title}</h2>
-    <div class="form-group">
-      <h3>Order</h3>
+    <h2 class="form__title">${formObj.title}</h2>
+    <div class="form-group hidden">
       <input id="orderId" class="input" type="text" name="orderId" required disabled value="${orderId ? orderId : "please provide a valid order id"}">
       <input style="margin-top: 8px;" id="userId" class="input" type="text" name="userId" required disabled value="${userId ? userId : "login to get user id"}">
     </div>
@@ -79,7 +79,7 @@ const renderForm = async (formObj) => {
         return renderQuestion(question);
       })
       .join("")}
-    <button class="submit-bttn" type="submit">Submit</button>
+    <button class="submit" type="submit">Submit</button>
   </form>
   `;
 
@@ -91,33 +91,21 @@ const renderQuestion = (question) => {
     const npsObj = JSON.parse(question.answers);
     window.nps = npsObj;
     return `
-      <div class="form-group nps">
-        <h3>${question.title}</h3>
-        <label>${question.description}</label>
+      <div class="form-group nps question question__nps">
+        <label class="question__title">${question.title}</label>
+        ${question.description ? `<p class="question__desc">${question.description}</p>` : ""}
         <div 
           class="nps-container"
-          style="display:flex; align-items:center; justify-content:center; gap:12px;"
         >
-          <div class='nps-range'
-            style="
-              display: flex;
-              gap: .4rem;
-            "
-          >
+          <div class='nps__buttons'>
             ${Array.from({ length: npsObj.npsRange + 1 })
               .map((_, index) => {
                 const value = index;
                 return `
                 <label 
+                  class="nps__option"
                   for="nps-${value}" 
                   onclick="handleNpsChange(event)"
-                  style="
-                    background-color: ${value > npsObj.firstRange ? "green" : value <= npsObj.firstRange && value > npsObj.secondRange ? "yellowgreen" : "red"};
-                    color: white;
-                    padding: 1rem;
-                    border-radius: 4px;
-                    cursor: pointer;
-                  "
                 >
                   ${value}
                 </label>
@@ -147,6 +135,15 @@ function handleNpsChange(e) {
   const selectedRange = e.target.getAttribute("for").split("-")[1];
   const container = document.getElementById("nps-conditional-questions");
   let question;
+
+  const options = document.querySelectorAll(".nps__option");
+  console.log("options", options);
+  options.forEach((option) => {
+    option.classList.remove("nps__option--active");
+  });
+  e.target.classList.add("nps__option--active");
+
+
   if (selectedRange <= nps.firstRange && selectedRange > nps.secondRange) {
     question = nps.firstQuestion;
   }
@@ -170,11 +167,12 @@ const inputHTML = (inputType, question) => {
   if (inputType === "select") {
     const answers = question.answers.split(",").map((q) => q.trim());
     return `
-      <div class="form-group select">
-        <h3>${question.title}</h3>
-        <label>${question.description}</label>
-        <select class="input">
-          ${answers
+      <div class="question">
+        <label class="question__title">${question.title}</label>
+        ${question.description ? `<p class="question__desc">${question.description}</p>` : ""}
+        <select class="question__input question__input--select" name="${question.title}" ${question.required ? "required" : ""}>
+          <option value="" disabled selected>${question.placeholder? question.placeholder: "placeholder"}</option>  
+        ${answers
             .map((answer) => {
               return `<option value="${answer}">${answer}</option>`;
             })
@@ -187,14 +185,17 @@ const inputHTML = (inputType, question) => {
   if (inputType === "radio") {
     const answers = question.answers.split(",").map((q) => q.trim());
     return `
-      <div class="form-group radio">
-        <h3>${question.title}</h3>
-        <label>${question.description}</label>
-        <div class="radio-options">
+      <div class="question">
+        <label class="question__title">${question.title}</label>
+        ${question.description ? `<p class="question__desc">${question.description}</p>` : ""}
+        <div class="column">
           ${answers
             .map((answer, index) => {
               return `
-              <label>
+              <label
+              class="question__input question__input--radio"
+                for="${`${answer.split()[0]}-${index}`}"
+              >
                 <input 
                   type="radio" 
                   id="${`${answer.split()[0]}-${index}`}" 
@@ -213,14 +214,17 @@ const inputHTML = (inputType, question) => {
   if (inputType === "checkbox") {
     const answers = question.answers.split(",").map((q) => q.trim());
     return `
-      <div class="form-group checkbox">
-        <h3>${question.title}</h3>
-        <label>${question.description}</label>
-        <div class="select-options">
+      <div class="question">
+        <label class="question__title">${question.title}</label>
+        ${question.description ? `<p class="question__desc">${question.description}</p>` : ""}
+        <div class="column">
           ${answers
             .map((answer, index) => {
               return `
-                <label>
+                <label
+                  class="question__input question__input--checkbox"
+                  for="${`${answer.split()[0]}-${index}`}"
+                >
                   <input 
                     type="checkbox" 
                     id="${`${answer.split()[0]}-${index}`}" 
@@ -237,10 +241,14 @@ const inputHTML = (inputType, question) => {
   }
 
   return `
-    <div class="form-group">
-      <h3>${question.title}</h3>
-      <label>${question.description}</label>
-      <input class="input" type="${question.inputType}" name="${question.title}" ${question.required ? "required" : ""}>
+    <div class="form-group question ${question.required ? "question--required" : ""}">
+      <label
+        class="question__title"
+      >${question.title}</label>
+      <p
+        class="question__desc" 
+      >${question.description}</p>
+      <input class="input question__input" placeholder="placeholder" type="${question.inputType}" name="${question.title}" ${question.required ? "required" : ""}>
     </div>
   `;
 };

@@ -6,6 +6,7 @@ GEM
 
 PLATFORMS
   x64-mingw-ucrt
+  x86_64-linux
 
 DEPENDENCIES
   dotenv (~> 2.8.1)
