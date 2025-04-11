@@ -1,7 +1,9 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://arzz-nps-form-theta.vercel.app/"
+application_url = "https://evident-cement-attacks-cheese.trycloudflare.com"
 embedded = true
 
 [build]
@@ -10,20 +12,25 @@ dev_store_url = "arzz-test-store.myshopify.com"
 include_config_on_deploy = true
 
 [access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_customers,read_metaobjects,read_orders,write_customers,write_metaobjects,write_orders,write_products"
 
 [auth]
-redirect_urls = ["https://arzz-nps-form-theta.vercel.app/auth/callback", "https://arzz-nps-form-theta.vercel.app/auth/shopify/callback", "https://arzz-nps-form-theta.vercel.app/api/auth/callback"]
+redirect_urls = [
+  "https://evident-cement-attacks-cheese.trycloudflare.com/auth/callback",
+  "https://evident-cement-attacks-cheese.trycloudflare.com/auth/shopify/callback",
+  "https://evident-cement-attacks-cheese.trycloudflare.com/api/auth/callback"
+]
 
 [webhooks]
 api_version = "2024-10"
 
-[[webhooks.subscriptions]]
-topics = ["app/uninstalled"]
-uri = "/webhooks/app/uninstalled"
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
 
 [app_proxy]
-url = "https://arzz-nps-form-theta.vercel.app"
+url = "https://evident-cement-attacks-cheese.trycloudflare.com"
 subpath = "arzz-form"
 prefix = "apps"
 
