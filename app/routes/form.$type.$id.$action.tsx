@@ -33,5 +33,5 @@ export const loader = async ({request, params}: LoaderFunctionArgs) => {
   // }
   console.log("loader form", form);
   console.log("loader", params.type, params.id, params.action);
-  return json(form)
+  return  json(form)
 }

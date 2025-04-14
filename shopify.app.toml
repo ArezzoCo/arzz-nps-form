@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://evident-cement-attacks-cheese.trycloudflare.com"
+application_url = "https://decisions-heaven-interference-confirmed.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_customers,read_metaobjects,read_orders,write_customers,write_meta
 
 [auth]
 redirect_urls = [
-  "https://evident-cement-attacks-cheese.trycloudflare.com/auth/callback",
-  "https://evident-cement-attacks-cheese.trycloudflare.com/auth/shopify/callback",
-  "https://evident-cement-attacks-cheese.trycloudflare.com/api/auth/callback"
+  "https://decisions-heaven-interference-confirmed.trycloudflare.com/auth/callback",
+  "https://decisions-heaven-interference-confirmed.trycloudflare.com/auth/shopify/callback",
+  "https://decisions-heaven-interference-confirmed.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
@@ -30,7 +30,7 @@ api_version = "2024-10"
   uri = "/webhooks/app/uninstalled"
 
 [app_proxy]
-url = "https://evident-cement-attacks-cheese.trycloudflare.com"
+url = "https://decisions-heaven-interference-confirmed.trycloudflare.com"
 subpath = "arzz-form"
 prefix = "apps"
 

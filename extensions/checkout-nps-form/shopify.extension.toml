@@ -10,14 +10,9 @@ name = "checkout-nps-form"
 handle = "checkout-nps-form"
 type = "ui_extension"
 
-
 # Controls where in Shopify your extension will be injected,
 # and the file that contains your extension’s source code. Learn more:
 # https://shopify.dev/docs/api/checkout-ui-extensions/unstable/extension-targets-overview
-
-[[extensions.targeting]]
-module = "./src/Checkout.tsx"
-target = "purchase.checkout.block.render"
 
 [[extensions.targeting]]
 target = "purchase.thank-you.block.render"
@@ -28,6 +23,7 @@ export = "ThankYou"
 # Gives your extension access to directly query Shopify’s storefront API.
 # https://shopify.dev/docs/api/checkout-ui-extensions/unstable/configuration#api-access
 api_access = true
+network_access = true
 
 # Gives your extension access to make external network calls, using the
 # JavaScript `fetch()` API. Learn more:
@@ -49,9 +45,9 @@ api_access = true
 # your extension. Learn more:
 # https://shopify.dev/docs/api/checkout-ui-extensions/unstable/configuration#settings-definition
 
-# [extensions.settings]
-# [[extensions.settings.fields]]
-# key = "banner_title"
-# type = "single_line_text_field"
-# name = "Banner title"
-# description = "Enter a title for the banner"
+[extensions.settings]
+[[extensions.settings.fields]]
+key = "form_id"
+type = "number_integer"
+name = "Form ID"
+description = "The ID of the form to be displayed"

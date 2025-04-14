@@ -1,4 +1,4 @@
-const api_prefix = "apps/arzz-form";
+let api_prefix = "apps/arzz-form";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const formContainer = document.getElementById("dynamic-form");
