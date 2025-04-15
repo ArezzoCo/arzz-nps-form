@@ -16,11 +16,15 @@ const Container = (props) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const root = document.getElementById('preact-root');
-  const orderId = root.dataset.orderId;
-  const userId = root.dataset.userId ? root.dataset.userId : null;
+  
+  const formId = root.dataset.formId;
+  const userId = root.dataset.customerId ? root.dataset.customerId : null;
+  
+  const query = new URLSearchParams(window.location.search);
+  const orderId = query.get("orderId");
   
   const fetchForm = async () => {
-    const response = await fetch('apps/arzz-form/form/nps/51/get');
+    const response = await fetch(`apps/arzz-form/form/nps/${formId}/get`);
     const data = await response.json();
     setFormObj(data);
     setIsLoading(false);
@@ -37,6 +41,35 @@ const Container = (props) => {
   const handleSubmit = async(event) => {
     event.preventDefault();
     console.log("submit event", event);
+
+    const form = event.target;
+    const questionsObj = Object.fromEntries(new FormData(form));
+    const orderId = form.querySelector("#orderId").value;
+    const userId = form.querySelector("#userId").value;
+
+    console.log('dataset', form.dataset);
+    console.log("submitting form");
+    console.log("Questions Object", questionsObj);
+    console.log("order ID", orderId);
+    console.log("user ID", userId);
+    let formdataset = {};
+
+    Object.assign(formdataset, form.dataset);
+    const reqBody = {
+      form: formdataset,
+      questions: questionsObj,
+      userId,
+      orderId,
+    };
+
+    console.log("req body", reqBody);
+
+    const response = await fetch('apps/arzz-form/form/submit', {
+      method: "POST",
+      body: JSON.stringify(reqBody),
+    });
+
+    console.log(response, await response.json());
   }
 
   if(isLoading) {
@@ -47,8 +80,7 @@ const Container = (props) => {
   <div class=container id=dynamic-form>
     <form 
       class=form 
-      onsubmit=${handleSubmit} 
-      data-id=${formObj.id}
+      onsubmit=${handleSubmit}
       data-order-metafield-namespace=${formObj.orderMetafieldNamespace}
       data-order-metafield-key=${formObj.orderMetafieldKey}
       data-customer-metafield-namespace=${formObj.customerMetafieldNamespace}
@@ -113,6 +145,7 @@ const QuestionDefault = ({question}) =>{
       <input
         class="question__input"
         placeholder="placeholder"
+        name="${question.title.replace(/ /g, "_")}"
         type="${question.inputType}"
         required=${question.required}
       />
@@ -189,7 +222,7 @@ const QuestionSelect = ({question}) => {
     <div class="question">
       <label class="question__title">${question.title}</label>
       ${question.description && html`<p class="question__desc">${question.description}</p>`}
-      <select class="question__input" name="${question.name}">
+      <select class="question__input" name="${question.title.replace(/ /g, "_")}">
         ${answers.map((answer) => html`<option value="${answer}">${answer}</option>`)}
       </select>
     </div>
@@ -213,7 +246,7 @@ const QuestionRadio = ({question}) => {
               <input
                 type="radio"
                 id="${`${answer.split()[0]}-${index}`}"
-                name="${question.title.split()[0]}"
+                name="${question.title.replace(/ /g, "_")}"
                 value="${`${answer.split()[0]}-${index}`}"
               />
               ${answer}
@@ -240,7 +273,7 @@ const QuestionCheckbox = ({question}) => {
             <input
               type="checkbox"
               id="${`${answer.split()[0]}-${index}`}"
-              name="${question.title.split()[0]}"
+              name="${question.title.replace(/ /g, "_")}"
               value="${`${answer.split()[0]}-${index}`}"
             />
             ${answer}
