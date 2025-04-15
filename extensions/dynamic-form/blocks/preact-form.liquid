@@ -9,7 +9,16 @@
   }
 </script> {% endcomment %}
 
-<section id="preact-root">
+{{ 'form-style.css' |  asset_url |  stylesheet_tag }}
+
+<section 
+  id="preact-root"
+  data-form-id="{{ block.settings.form_id }}"
+  data-form-type="{{ block.settings.form_type }}"
+  {% if customer %} 
+    data-customer-id="{{ customer.id }}"
+  {% endif %}
+>
 </section>
 
 <script type="module" src="{{ 'preact-index.js' |  asset_url }}"></script>
