@@ -3,7 +3,7 @@
 client_id = "656470eec397396e68d2730676de1db5"
 name = "nps-form-arzz"
 handle = "nps-form-arzz"
-application_url = "https://making-alleged-mtv-gmc.trycloudflare.com"
+application_url = "https://gzip-hats-cottages-champagne.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_customers,read_metaobjects,read_orders,write_customers,write_meta
 
 [auth]
 redirect_urls = [
-  "https://making-alleged-mtv-gmc.trycloudflare.com/auth/callback",
-  "https://making-alleged-mtv-gmc.trycloudflare.com/auth/shopify/callback",
-  "https://making-alleged-mtv-gmc.trycloudflare.com/api/auth/callback"
+  "https://gzip-hats-cottages-champagne.trycloudflare.com/auth/callback",
+  "https://gzip-hats-cottages-champagne.trycloudflare.com/auth/shopify/callback",
+  "https://gzip-hats-cottages-champagne.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
@@ -30,7 +30,7 @@ api_version = "2024-10"
   uri = "/webhooks/app/uninstalled"
 
 [app_proxy]
-url = "https://making-alleged-mtv-gmc.trycloudflare.com"
+url = "https://gzip-hats-cottages-champagne.trycloudflare.com"
 subpath = "arzz-form"
 prefix = "apps"
 

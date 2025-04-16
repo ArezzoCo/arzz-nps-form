@@ -15,7 +15,9 @@ function App (props) {
 const Container = (props) => {
   const [answers, setAnswers] = useState({});
   const [formObj, setFormObj] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(true);
+  const [isError, setIsError] = useState(false);
 
   
   const formId = root.dataset.formId;
@@ -52,12 +54,12 @@ const Container = (props) => {
 
    // **INÍCIO DA VALIDAÇÃO**
    const requiredFields = form.querySelectorAll('[data-required="true"]');
-   let hasErrors = false;
+   setIsError(false);
 
    requiredFields.forEach(field => {
      verifyRequired(field);
      if (field.closest('.question').classList.contains('question--invalid')) {
-       hasErrors = true;
+       setIsError(true);
      }
    });
 
@@ -69,12 +71,12 @@ const Container = (props) => {
 
    if (npsQuestionElement && npsRequiredInput && !npsSelectedOption) {
      npsQuestionElement.classList.add('question--invalid');
-     hasErrors = true;
+     setIsError(true); // Define o estado de erro se o NPS não estiver preenchido
    } else if (npsQuestionElement) {
      npsQuestionElement.classList.remove('question--invalid'); // Remove a classe se estiver válido
    }
 
-   if (hasErrors) {
+   if (isError) {
      console.log("Formulário com erros. Por favor, preencha os campos obrigatórios.");
      return; // Impede o envio do formulário se houver erros
    }
@@ -97,16 +99,34 @@ const Container = (props) => {
 
     console.log("req body", reqBody);
 
-    const response = await fetch('apps/arzz-form/form/submit', {
-      method: "POST",
-      body: JSON.stringify(reqBody),
-    });
+    try {
+      const response = await fetch('apps/arzz-form/form/submit', {
+        method: "POST",
+        body: JSON.stringify(reqBody),
+      });
 
-    console.log(response, await response.json());
+      console.log(response, await response.json());
+
+      if (response.ok) {
+        setIsSubmitted(true); // Atualiza o estado após o envio bem-sucedido
+      } else {
+        console.error("Erro no envio do formulário");
+        // Aqui você pode adicionar lógica para exibir uma mensagem de erro ao usuário
+      }
+    } catch (error) {
+      console.error("Erro ao enviar o formulário:", error);
+      // Aqui você também pode adicionar lógica para exibir uma mensagem de erro ao usuário
+    }
   }
 
+  console.log("isLoading: ", isLoading);
   if(isLoading) {
     return html`<span class="loader"></span>`;
+  }
+
+  console.log("isSubmitted: ", isSubmitted);
+  if(isSubmitted) {
+    return html`<${ThankYou} />`;
   }
 
   return html`
@@ -383,6 +403,47 @@ const QuestionCheckbox = ({question}) => {
     </div>
   `;
 }
+
+const ThankYou = () => {
+  return html`
+    <div class="thank-you-container">
+      <div class="thank-you__illustration">
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#26a269" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big-icon lucide-circle-check-big"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg>
+      </div>
+      <h2 class="thank-you__title">Agradecemos sua participação!</h2>
+      <p class="thank-you__message">Sua opinião é muito importante para nós. Obrigado por dedicar seu tempo para responder ao nosso formulário.</p>
+      <div class="thank-you__actions">
+        <button class="thank-you__button thank-you__button--primary" onClick=${()=>{
+          alert("Redirecting to store...");
+        }}>
+          Go to store
+        </button>
+        <button class="thank-you__button thank-you__button--secondary" onClick=${()=>{
+          alert("Redirecting to contact page...");
+        }} >
+          Contact us
+        </button>
+      </div>
+    </div>
+  `;
+};
+
+/* 
+<div class="thank-you__actions">
+  <button class="thank-you__button thank-you__button--primary" onClick={() => {
+    // Aqui você pode adicionar a lógica para redirecionar o usuário para a loja
+    window.location.href = '/loja'; // Substitua '/loja' pela URL da sua loja
+  }}>
+    Ir para a Loja
+  </button>
+  <button class="thank-you__button thank-you__button--secondary" onClick={() => {
+    // Aqui você pode adicionar a lógica para abrir um formulário de contato ou redirecionar para a página de contato
+    window.location.href = '/contato'; // Substitua '/contato' pela URL da sua página de contato
+  }}>
+    Entrar em Contato
+  </button>
+</div>
+*/
 
 
 render(html`<${App}/>`, document.getElementById('preact-root'));
