@@ -6,6 +6,8 @@ import htm from 'https://esm.sh/htm';
 // Initialize htm with Preact
 const html = htm.bind(h);
 
+const root = document.getElementById('preact-root');
+
 function App (props) {
   return html`<${Container} />`;
 }
@@ -15,7 +17,6 @@ const Container = (props) => {
   const [formObj, setFormObj] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const root = document.getElementById('preact-root');
   
   const formId = root.dataset.formId;
   const userId = root.dataset.customerId ? root.dataset.customerId : null;
@@ -42,10 +43,42 @@ const Container = (props) => {
     event.preventDefault();
     console.log("submit event", event);
 
+    
+
     const form = event.target;
     const questionsObj = Object.fromEntries(new FormData(form));
     const orderId = form.querySelector("#orderId").value;
     const userId = form.querySelector("#userId").value;
+
+   // **INÍCIO DA VALIDAÇÃO**
+   const requiredFields = form.querySelectorAll('[data-required="true"]');
+   let hasErrors = false;
+
+   requiredFields.forEach(field => {
+     verifyRequired(field);
+     if (field.closest('.question').classList.contains('question--invalid')) {
+       hasErrors = true;
+     }
+   });
+
+   // Validar o container do NPS separadamente
+   const npsQuestionElement = form.querySelector('.question__nps');
+   const npsContainer = form.querySelector('.nps-container');
+   const npsRequiredInput = npsContainer?.querySelector('input[name="nps"][data-required="true"]');
+   const npsSelectedOption = npsContainer?.querySelector('.nps__option--active');
+
+   if (npsQuestionElement && npsRequiredInput && !npsSelectedOption) {
+     npsQuestionElement.classList.add('question--invalid');
+     hasErrors = true;
+   } else if (npsQuestionElement) {
+     npsQuestionElement.classList.remove('question--invalid'); // Remove a classe se estiver válido
+   }
+
+   if (hasErrors) {
+     console.log("Formulário com erros. Por favor, preencha os campos obrigatórios.");
+     return; // Impede o envio do formulário se houver erros
+   }
+   // **FIM DA VALIDAÇÃO**
 
     console.log('dataset', form.dataset);
     console.log("submitting form");
@@ -108,7 +141,6 @@ const Container = (props) => {
         />
       </div>
       ${formObj.questions && formObj.questions.map((question, index)=>{
-        console.log(question.required)
         return handleQuestionType(question);
       })}
       <button class=submit type=submit>Submit</button>
@@ -117,9 +149,39 @@ const Container = (props) => {
   `;
 }
 
+const verifyRequired = (element) => {
+  const questionElement = element.closest('.question');
+  if (questionElement) {
+    let isFilled = false;
+
+    if (element.tagName === 'INPUT') {
+      if (element.type === 'radio' || element.type === 'checkbox') {
+        // Para radio e checkbox, verifica se algum está marcado no grupo
+        const name = element.name;
+        const checkedInGroup = questionElement.querySelectorAll(`input[name="${name}"]:checked`);
+        isFilled = checkedInGroup.length > 0;
+      } else {
+        isFilled = !!element.value.trim();
+      }
+    } else if (element.tagName === 'SELECT') {
+      isFilled = !!element.value;
+    } else if (element.classList.contains('nps-container')) {
+      // Para NPS, verifica se algum botão foi clicado (se npsValue está definido)
+      const selectedValueSpan = questionElement.querySelector('#selected-nps-value');
+      isFilled = !!(selectedValueSpan && selectedValueSpan.textContent);
+    }
+
+    if (!isFilled && element.dataset.required === 'true') {
+      questionElement.classList.add('question--invalid');
+    } else {
+      questionElement.classList.remove('question--invalid');
+    }
+  }
+};
+
 const handleQuestionType = (question) => {
   if(question.inputType === "nps") {
-    return html`<${QuestionNps} question=${question} />`
+    return html`<${QuestionNps} question=${question}/>`
   }
 
   if(question.inputType === "select") {
@@ -131,23 +193,29 @@ const handleQuestionType = (question) => {
   }
 
   if(question.inputType === "checkbox") {
-    return html`<${QuestionCheckbox} question=${question} />`
+    return html`<${QuestionCheckbox} question=${question}/>`
   }
 
-  return html`<${QuestionDefault} question=${question} />`
+  return html`<${QuestionDefault} question=${question}/>`
 }
 
 const QuestionDefault = ({question}) =>{
+  const handleInputChange = (event) => {
+    verifyRequired(event.target);
+  };
+
   return html`
     <div class="question ${question.required ? "question--required" : ""}">
       <label class="question__title">${question.title}</label>
       ${question.description && html`<p class="question__desc">${question.description}</p>`}
       <input
+        id="question-${question.id}"
         class="question__input"
-        placeholder="placeholder"
+        placeholder="${question.title}"
         name="${question.title.replace(/ /g, "_")}"
         type="${question.inputType}"
-        required=${question.required}
+        data-required="${question.required}"
+        onchange=${handleInputChange}
       />
     </div>
   `
@@ -158,8 +226,6 @@ const QuestionNps = ({question}) => {
 
   const npsObj = JSON.parse(question.answers);
 
-  console.log("npsObj", npsObj);
-
   const handleNpsChange = (event) => {
     const selectedValue = event.target.textContent;
     setNpsValue(Number(selectedValue));
@@ -169,7 +235,19 @@ const QuestionNps = ({question}) => {
       option.classList.remove("nps__option--active");
     })
     event.target.classList.add("nps__option--active");
+
+    const npsContainer = event.target.closest('.nps-container');
+    if (npsContainer) {
+      verifyRequired(npsContainer); // Passa o container do NPS
+    }
   }
+
+  useEffect(() => {
+    const npsContainer = document.querySelector('.nps-container');
+    if (npsContainer) {
+      verifyRequired(npsContainer); // Verificação inicial
+    }
+  }, [npsValue, question.required]);
 
   return html`
     <div class="question question__nps">
@@ -177,21 +255,22 @@ const QuestionNps = ({question}) => {
       ${question.description && html`<p class="question__desc">${question.description}</p>`}
       <div class="nps-container">
         <div class='nps__buttons'>
+          <span id="selected-nps-value" class="hidden">${npsValue}</span>
           ${Array.from({ length: npsObj.npsRange + 1 })
             .map((_, index) => {
               return html`
                 <label
                   class="nps__option"
                   for="nps-${index}"
-                  onclick="${(event)=>handleNpsChange(event)}" 
+                  onclick="${(event)=>handleNpsChange(event)}"
                 >${index}</label>
                 <input
                   type="radio"
                   id="nps-${index}"
                   name="nps"
                   value="${index}"
-                  required
-                  style="display: none"
+                  data-required="true"
+                  style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;"
                 />
               `;
             })}
@@ -199,9 +278,9 @@ const QuestionNps = ({question}) => {
       </div>
       <div id="nps-conditional-questions">
         ${
-          npsValue !== undefined && 
-          npsValue <= npsObj.firstRange && 
-          npsValue > npsObj.secondRange && 
+          npsValue !== undefined &&
+          npsValue <= npsObj.firstRange &&
+          npsValue > npsObj.secondRange &&
           handleQuestionType(npsObj.firstQuestion)
         }
 
@@ -218,11 +297,22 @@ const QuestionNps = ({question}) => {
 const QuestionSelect = ({question}) => {
   const answers = question.answers.split(",").map((q)=> q.trim());
 
+  const handleSelectChange = (event) => {
+    verifyRequired(event.target);
+  };
+
   return html`
-    <div class="question">
+    <div class="question ${question.required? "question--required" : ""}">
       <label class="question__title">${question.title}</label>
       ${question.description && html`<p class="question__desc">${question.description}</p>`}
-      <select class="question__input" name="${question.title.replace(/ /g, "_")}">
+      <select
+        id="${question.title.replace(/ /g, "_")}"
+        name="${question.title.replace(/ /g, "_")}"
+        class="question__input"
+        data-required="${question.required}"
+        onchange=${handleSelectChange}
+      >
+        <option value="" disabled selected>Select an option</option>
         ${answers.map((answer) => html`<option value="${answer}">${answer}</option>`)}
       </select>
     </div>
@@ -232,22 +322,27 @@ const QuestionSelect = ({question}) => {
 const QuestionRadio = ({question}) => {
   const answers = question.answers.split(",").map((q)=> q.trim());
 
+  const handleRadioChange = (event) => {
+    verifyRequired(event.target); // Passa o input de rádio que mudou
+  };
+
   return html`
-    <div class="question">
+    <div class="question ${question.required? "question--required" : ""}">
       <label class="question__title">${question.title}</label>
       ${question.description && html`<p class="question__desc">${question.description}</p>`}
-      <div class="column">
+      <div class="column" onchange=${handleRadioChange}>
         ${answers.map((answer, index)=> {
           return html`
             <label
               class="question__input question__input--radio"
-              for="${`${answer.split()[0]}-${index}`}"
+              for="radio-${question.title.replace(/ /g, "_")}-${index}"
             >
               <input
                 type="radio"
-                id="${`${answer.split()[0]}-${index}`}"
-                name="${question.title.replace(/ /g, "_")}"
+                id="radio-${question.title.replace(/ /g, "_")}-${index}"
+                name="radio-${question.title.replace(/ /g, "_")}"
                 value="${`${answer.split()[0]}-${index}`}"
+                data-required="${question.required}"
               />
               ${answer}
             </label>
@@ -261,20 +356,25 @@ const QuestionRadio = ({question}) => {
 const QuestionCheckbox = ({question}) => {
   const answers = question.answers.split(",").map((q)=> q.trim());
 
+  const handleCheckboxChange = (event) => {
+    verifyRequired(event.target); // Passa o input de checkbox que mudou
+  };
+
   return html`
-    <div class="question">
+    <div class="question ${question.required? "question--required" : ""}" onchange=${handleCheckboxChange}>
       <label class="question__title">${question.title}</label>
       ${answers.map((answer, index) => {
         return html`
           <label
             class="question__input question__input--checkbox"
-            for="${`${answer.split()[0]}-${index}`}"
+            for="checkbox-${question.title.replace(/ /g, "_")}-${index}"
           >
             <input
+              id="checkbox-${question.title.replace(/ /g, "_")}-${index}"
+              name="checkbox-${question.title.replace(/ /g, "_")}-${index}"
+              value="${answer.split()[0]}-${index}"
               type="checkbox"
-              id="${`${answer.split()[0]}-${index}`}"
-              name="${question.title.replace(/ /g, "_")}"
-              value="${`${answer.split()[0]}-${index}`}"
+              data-required="${question.required}"
             />
             ${answer}
           </label>

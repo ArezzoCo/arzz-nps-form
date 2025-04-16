@@ -84,11 +84,21 @@
 }
 
 .question--required {
-
   .question__title::before {
     content: "*";
     color: #FF0000;
     margin-left: 4px;
+  }
+}
+
+.question--invalid {
+  .question__title{
+    color: #A83C3F;
+  }
+
+  .question__input{
+    background: #A83C3F26;
+    border: 1px solid #A83C3F;
   }
 }
 
